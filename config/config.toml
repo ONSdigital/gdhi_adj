@@ -1,0 +1,17 @@
+[user_settings]
+local_or_shared = "local"  # or "shared"
+
+[local_settings]
+input_dir = "dummy_data/dummydata.csv"
+output_dir = "dummy_data/output/agg_data.csv"
+
+[shared_settings]
+input_dir = "shared/input/"
+output_dir = "shared/output/"
+
+[pipeline_settings]
+output_data = true
+
+# Application metadata
+app_name = "simple_pipeline"
+app_description = "A simple pipeline for processing data."

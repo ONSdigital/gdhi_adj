@@ -1,0 +1,37 @@
+# Ignore personal .gitconfigs
+.gitconfig
+
+# Ignore items created by the project
+*egg-info
+run_logs
+*.pyc
+*__pycache__
+.pytest_cache
+build/
+dist/
+
+# Ignore general environment folders created by editors
+.bash_history
+.cache
+.conda*
+.coverage
+*.ipynb_checkpoints
+.ipython
+.jupyter
+.local
+.oracle_jre_usage
+.pip
+.plotly
+.pylint.d
+.python_history
+.ssh
+.viminfo
+.vscode*/
+.vscode-server/
+**~
+
+# Ignore files used for documentation with Sphinx
+docs/_build/
+
+# Ignore wiki directory (it's a separate git repository)
+wiki/

@@ -1,0 +1,12 @@
+[flake8]
+
+max-line-length = 100
+
+exclude =
+    .local/
+    .git/
+    __pycache__/
+    *.ipynb_checkpoints/
+    docs/
+    _version.py
+    __init__.py

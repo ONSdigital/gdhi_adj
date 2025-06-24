@@ -1,0 +1,12 @@
+title = "User configuration file"
+description = "Configuration file to define various parameters, intended for users."
+
+[run_parameters]
+start_date = 2021-01-01
+end_date = 2021-12-31
+input_table.name = "My Cool Input Table"
+input_table.path = "/home/cdsw/inputs/"
+
+[other_section]
+parameter_1 = 1
+parameter_2 = 2
