@@ -1,0 +1,20 @@
+[lsoa21]
+old_name = "lsoa21"
+Deduced_Data_Type = "str"
+
+[Year]
+old_name = "Year"
+Deduced_Data_Type = "str"
+
+[Component]
+old_name = "Component"
+Deduced_Data_Type = "str"
+
+[Value]
+old_name = "Value"
+Deduced_Data_Type = "int"
+
+[LAD_total]
+old_name = "LAD_total"
+Deduced_Data_Type = "int"
+

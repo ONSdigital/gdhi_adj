@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 def check_column_names(df: pd.DataFrame) -> None:
     required_columns = {'ID', 'Area', 'Proportion', 'Type'}
     if set(df.columns) == required_columns:
