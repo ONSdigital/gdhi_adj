@@ -50,7 +50,7 @@ repos:
         entry: /home/cdsw/rap-project-example/dev_utils/pre-commit_helpers/check_filetypes.py
         stages: [commit]
         language: system
-        args: ["--filetypes=csv,sas"]
+        args: ["--filetypes=csv,sas,xlsx,xls,json,xml,parquet,avro,feather"]
 
 -   repo: local
     hooks:

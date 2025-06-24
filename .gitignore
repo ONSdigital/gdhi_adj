@@ -10,6 +10,18 @@ run_logs
 build/
 dist/
 
+#Prevent data files from being committed
+*.csv
+*.xlsx
+*.xlsx
+*.zip
+*.rds
+*.rda
+*.sav
+*.dta
+*.sas7bdat
+*.mat
+
 # Ignore general environment folders created by editors
 .bash_history
 .cache
