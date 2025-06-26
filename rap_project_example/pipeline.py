@@ -5,7 +5,7 @@ from rap_project_example.cleanliness_checks import check_column_names, check_mis
 from rap_project_example.preprocess import remove_nan_rows
 from rap_project_example.test_function_agg import aggregate_data
 from rap_project_example.config import load_toml_config
-from rap_project_example.utils.configuration import load_schema_from_toml, validate_schema  
+from rap_project_example.utils.configuration import load_schema_from_toml, validate_schema, convert_column_types, rename_columns
 
 
 def run_pipeline(config_path):
@@ -31,6 +31,9 @@ def run_pipeline(config_path):
         logger.info(f"Schema path specified in config: {schema_path}")
         logger.info("Loading schema configuration from TOML file")
         expected_schema = load_schema_from_toml(schema_path)
+        rename_columns(df, expected_schema, logger)
+        logger.debug(f"Renamed columns based on schema: {expected_schema}")
+        convert_column_types(df, expected_schema, logger)
         logger.debug(f"Parsed expected schema: {expected_schema}")
         logger.info("Validating schema")
         validate_schema(df, expected_schema)
