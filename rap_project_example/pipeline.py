@@ -1,11 +1,8 @@
 import os
 import pandas as pd
 from rap_project_example.utils.logger import logger_creator
-from rap_project_example.cleanliness_checks import check_column_names, check_missing_data
 from rap_project_example.preprocess import remove_nan_rows
-from rap_project_example.test_function_agg import aggregate_data
-from rap_project_example.config import load_toml_config
-from rap_project_example.utils.configuration import load_schema_from_toml, validate_schema, convert_column_types, rename_columns
+from rap_project_example.utils.helpers import load_schema_from_toml, validate_schema, convert_column_types, rename_columns, load_toml_config
 
 
 def run_pipeline(config_path):
@@ -23,7 +20,7 @@ def run_pipeline(config_path):
 
         # Load data
         logger.info(f"Loading data from {input_dir}")
-        df = pd.read_excel(input_dir)
+        df = pd.read_csv(input_dir)
         logger.info("Data loaded successfully")
 
         # Load and validate schema
@@ -41,12 +38,7 @@ def run_pipeline(config_path):
 
         # # Preprocess
         # logger.info("Preprocessing data")
-        # df = remove_nan_rows(df)
-
-        # # Perform aggregation
-        # logger.info("Aggregating data")
-        # result_df = aggregate_data(df)
-        # logger.info("Pipeline completed successfully")
+        #df = remove_nan_rows(df)
 
         # Save output file with new filename if specified
         if config["pipeline_settings"]["output_data"]:

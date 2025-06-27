@@ -2,8 +2,8 @@
 local_or_shared = "local"  # or "shared"
 
 [local_settings]
-input_dir = "dummy_data/dummydata.xlsx"
-output_dir = "dummy_data/output/agg_data.csv"
+input_dir = "D:/dummydata.csv" #Run from D: drive here 
+output_dir = "D:/" #Set output directory here to D:drive 
 
 [shared_settings]
 input_dir = "shared/input/"
@@ -11,8 +11,8 @@ output_dir = "shared/output/"
 
 [pipeline_settings]
 output_data = true
-output_filename = "final_output.csv"
-schema_path = "config/schema_config.toml"
+output_filename = "final_output.csv" #Change name of file here 
+schema_path = "config/input_schema.toml"
 
 # Application metadata
 app_name = "simple_pipeline"

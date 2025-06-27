@@ -37,6 +37,7 @@ dist/
 .pylint.d
 .python_history
 .ssh
+.venv
 .viminfo
 .vscode*/
 .vscode-server/
