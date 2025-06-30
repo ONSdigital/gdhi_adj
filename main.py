@@ -1,3 +1,5 @@
+"""Main file to run pipeine"""
+
 from rap_project_example.pipeline import run_pipeline
 
 # config path

@@ -1,3 +1,5 @@
+"""Title for pipeline.py module"""
+
 import os
 import pandas as pd
 from rap_project_example.utils.logger import logger_creator
