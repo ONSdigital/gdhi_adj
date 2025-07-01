@@ -5,7 +5,7 @@
 
 Staging
 *******
-.. automodule:: rap_project_example.dummy_module
+.. automodule:: gdhi_adj.dummy_module
     :members:
     :undoc-members:
     :private-members:

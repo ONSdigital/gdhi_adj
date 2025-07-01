@@ -2,8 +2,8 @@
 
 import os
 import pandas as pd
-from rap_project_example.utils.logger import logger_creator
-from rap_project_example.utils.helpers import (
+from gdhi_adj.utils.logger import logger_creator
+from gdhi_adj.utils.helpers import (
     load_schema_from_toml,
     validate_schema,
     convert_column_types,

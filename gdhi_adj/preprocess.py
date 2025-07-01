@@ -1,4 +1,4 @@
-"""Module for pre-processing data in the rap_project_example project."""
+"""Module for pre-processing data in the gdhi_adj project."""
 
 
 def remove_nan_rows(df):
