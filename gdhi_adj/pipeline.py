@@ -20,8 +20,8 @@ def run_pipeline(config_path):
     config = load_toml_config(config_path)
     local_or_shared = config["user_settings"]["local_or_shared"]
     filepath_dict = config[f"{local_or_shared}_settings"]
-    input_dir = filepath_dict["input_dir"]
-    output_dir = filepath_dict["output_dir"]
+    input_dir = "C:/Users/" + os.getlogin() + filepath_dict["input_dir"]
+    output_dir = "C:/Users/" + os.getlogin() + filepath_dict["output_dir"]
 
     try:
 
