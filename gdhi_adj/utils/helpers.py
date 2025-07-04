@@ -1,3 +1,5 @@
+"""Define helper functions that wrap regularly-used functions."""
+
 import os
 import tomli  # tomli can be upgraded to tomllib in Python 3.11+
 import logging
@@ -5,8 +7,9 @@ from typing import Union
 import pathlib
 import toml
 import pandas as pd
+from gdhi_adj.utils.logger import logger_creator
 
-"""Define helper functions that wrap regularly-used functions."""
+logger = logger_creator()
 
 
 def load_toml_config(path: Union[str, pathlib.Path]) -> dict | None:
@@ -110,3 +113,69 @@ def convert_column_types(df, schema, logger):
                     )
                 )
     return df
+
+
+def read_with_schema(input_dir, input_schema):
+    """
+    Reads in a csv file and compares it to a data dictionary schema.
+
+    Parameters:
+    input_dir (string): Filepath to the csv file to be read in.
+    input_schema (string): Filepath to the schema file in TOML format.
+
+    Returns:
+    df (pd.DataFrame): Formatted dataFrame containing data from the csv file.
+    """
+    # Load data
+    logger.info(f"Loading data from {input_dir}")
+    df = pd.read_csv(input_dir)
+    logger.info("Data loaded successfully")
+
+    # Load and validate schema
+    logger.info(f"Schema path specified in config: {input_schema}")
+    logger.info("Loading schema configuration from TOML file")
+    expected_schema = load_schema_from_toml(input_schema)
+    rename_columns(df, expected_schema, logger)
+    logger.debug(f"Renamed columns based on schema: {expected_schema}")
+    convert_column_types(df, expected_schema, logger)
+    logger.debug(f"Parsed expected schema: {expected_schema}")
+    logger.info("Validating schema")
+    validate_schema(df, expected_schema)
+    logger.info("Schema validation passed successfully")
+
+    return df
+
+
+def write_with_schema(df, output_schema, output_dir, new_filename=None):
+    """
+    Reads in a csv file and compares it to a data dictionary schema.
+
+    Parameters:
+    output_schema (string): Filepath to the schema file in TOML format.
+    output_dir (string): Filepath to the csv file to be written out.
+
+    Returns:
+    None: Writes the DataFrame to a CSV file after validating against the schema.
+    """
+    # Load and validate schema
+    logger.info(f"Schema path specified in config: {output_schema}")
+    logger.info("Loading schema configuration from TOML file")
+    expected_schema = load_schema_from_toml(output_schema)
+    rename_columns(df, expected_schema, logger)
+    logger.debug(f"Renamed columns based on schema: {expected_schema}")
+    logger.info("Validating schema")
+    validate_schema(df, expected_schema)
+    logger.info("Schema validation passed successfully")
+
+    # Write DataFrame to CSV
+    logger.info(f"Writing data to {output_dir}")
+    # Ensure output directory exists
+    if new_filename:
+        new_output_path = os.path.join(os.path.dirname(output_dir), new_filename)
+    else:
+        new_output_path = output_dir  # fallback to original
+    logger.debug(f"Ensured output directory exists: {os.path.dirname(output_dir)}")
+    # Convert DataFrame to CSV
+    logger.info(f"Saving data to {new_output_path}")
+    df.to_csv(new_output_path, index=False)
+    logger.info("Data saved successfully")

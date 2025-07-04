@@ -1,0 +1,11 @@
+["LSOA code"]
+old_name = "lsoa_code"
+
+["LSOA name"]
+old_name = "lsoa_name"
+
+["LAD code"]
+old_name = "lad_code"
+
+["LAD name"]
+old_name = "lad_name"

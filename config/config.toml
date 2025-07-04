@@ -12,7 +12,8 @@ output_dir = "/Office for National Statistics/Subnational Statistics - Regional 
 [pipeline_settings]
 output_data = true
 output_filename = "gdhi_manual_adj_final_output.csv" #Change name of file here
-schema_path = "config/input_schema.toml"
+input_schema_path = "config/input_schema.toml"
+output_schema_path = "config/output_schema.toml"
 
 # Application metadata
 app_name = "simple_pipeline"
