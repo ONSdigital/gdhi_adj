@@ -1,5 +1,5 @@
 import pandas as pd
-from rap_project_example.preprocess import remove_nan_rows
+from gdhi_adj.preprocess import remove_nan_rows
 
 
 def test_remove_nan_rows():

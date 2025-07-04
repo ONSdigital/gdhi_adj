@@ -50,3 +50,4 @@ docs/_build/
 
 # Ignore wiki directory (it's a separate git repository)
 wiki/
+gdhi_adj.code-workspace

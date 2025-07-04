@@ -1,19 +1,15 @@
-[lsoa21]
-old_name = "lsoa21"
+[lsoa_code]
+old_name = "LSOA code"
 Deduced_Data_Type = "str"
 
-[year]
-old_name = "Year"
+[lsoa_name]
+old_name = "LSOA name"
 Deduced_Data_Type = "str"
 
-[component]
-old_name = "Component"
+[lad_code]
+old_name = "LAD code"
 Deduced_Data_Type = "str"
 
-[value]
-old_name = "Value"
-Deduced_Data_Type = "int"
-
-[lAD_total]
-old_name = "LAD_total"
-Deduced_Data_Type = "int"
+[lad_name]
+old_name = "LAD name"
+Deduced_Data_Type = "str"

@@ -1,6 +1,6 @@
 """Main file to run pipeine"""
 
-from rap_project_example.pipeline import run_pipeline
+from gdhi_adj.pipeline import run_pipeline
 
 # config path
 config_path = "config/config.toml"
