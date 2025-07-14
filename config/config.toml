@@ -2,17 +2,18 @@
 local_or_shared = "shared"  # "local" or "shared"
 
 [local_settings]
-input_dir = "D:/gdhi_adj_dummy.csv" #Run from D: drive here
-output_dir = "D:/" #Set output directory here to D:drive
+input_file_path = "D:/gdhi_adj_dummy.csv" #Run from D: drive here
+output_file_path = "D:/" #Set output directory here to D:drive
 
 [shared_settings]
-input_dir = "/Office for National Statistics/Subnational Statistics - Regional Accounts/GDHI/2025_Manual_Adjustments/east_2022_constrained.csv"
+input_file_path = "/Office for National Statistics/Subnational Statistics - Regional Accounts/GDHI/2025_Manual_Adjustments/east_2022_constrained.csv"
 output_dir = "/Office for National Statistics/Subnational Statistics - Regional Accounts/GDHI/2025_Manual_Adjustments/"
 
 [pipeline_settings]
 output_data = true
 output_filename = "gdhi_manual_adj_final_output.csv" #Change name of file here
-schema_path = "config/input_schema.toml"
+input_schema_path = "config/input_schema.toml"
+output_schema_path = "config/output_schema.toml"
 
 # Application metadata
 app_name = "simple_pipeline"

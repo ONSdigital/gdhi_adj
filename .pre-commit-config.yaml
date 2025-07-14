@@ -32,7 +32,7 @@ repos:
       hooks:
           - id: black
             name: black - consistent Python code formatting (auto-fixes)
-            language_version: python3.11 # Should be a command that runs python3.6+
+            language_version: python3 # Should be a command that runs python3.6+
             exclude: .*/tests/.*|^\.cruft\.json$|.*\tests\.*|helpers/.*|^tests
             args: ["--preview", "--line-length=88"]
     - repo: https://github.com/PyCQA/flake8
@@ -46,13 +46,13 @@ repos:
       hooks:
           - id: nbqa-isort
             name: nbqa-isort - Sort Python imports (notebooks; auto-fixes)
-            language_version: python3.11 # Should be a command that runs python3.6+
+            language_version: python3 # Should be a command that runs python3.6+
             args: [--nbqa-mutate]
             additional_dependencies: [isort==5.8.0]
             exclude: .*/tests/.*|^\.cruft\.json$|.*\tests\.*
           - id: nbqa-black
             name: nbqa-black - consistent Python code formatting (notebooks; auto-fixes)
-            language_version: python3.11 # Should be a command that runs python3.6+
+            language_version: python3 # Should be a command that runs python3.6+
             args: [--nbqa-mutate]
             additional_dependencies: [black==21.5b2]
             exclude: .*/tests/.*|^\.cruft\.json$|.*\tests\.*
