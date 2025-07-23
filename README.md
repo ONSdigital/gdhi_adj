@@ -20,8 +20,9 @@ This project runs controlled adjustments of GDHI figures at LSOA levels and reno
 4. **For developers: install VS Code**
 5. **Sync Subnational Statistics sharepoint to OneDrive:**
     - Go to the Subnational Staistics sharepoint, and open the regional accounts
-      folder, in the menu row above the file path, click sync, and then open to
-      allow it to open and sync to OneDrive.
+      folder, then go into the GDHI sub folder, and open '2025_manual_adjustments'
+      folder, then in the menu row above the file path, click sync, and then
+      open to allow it to open and sync to OneDrive.
 6. **Activate the virtual environment:**
    ```sh
    conda init

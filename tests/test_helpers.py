@@ -1,20 +1,22 @@
 """Unit tests for helper functions."""
+import pandas as pd
 import pytest
 import toml
-import pandas as pd
+
 from gdhi_adj.utils.helpers import (
-    rename_columns,
     read_with_schema,
+    rename_columns,
     write_with_schema,
 )
-from gdhi_adj.utils.logger import logger_creator
+from gdhi_adj.utils.logger import GDHI_adj_logger
 
-logger = logger_creator()
+GDHI_adj_LOGGER = GDHI_adj_logger(__name__)
+logger = GDHI_adj_LOGGER.logger
 
 
 @pytest.fixture
 def test_schema() -> str:
-    """Create a sample schema for testing pass scenario."""
+    """Create a sample schema to test pass scenario."""
     schema_content = """
     [new_col_name]
     old_name = "Old col name"
@@ -38,7 +40,7 @@ def test_schema_file(tmp_path, test_schema: str) -> str:
 
 @pytest.fixture
 def test_schema_wrong_col() -> str:
-    """Create a sample schema for testing when data columns do not match schema."""
+    """Create a sample schema to test when data columns do not match schema."""
     schema_content = """
     [new_col_name]
     old_name = "Old col nom"
@@ -53,7 +55,7 @@ def test_schema_wrong_col() -> str:
 
 @pytest.fixture
 def test_schema_file_wrong_col(tmp_path, test_schema_wrong_col: str) -> str:
-    """Create a sample schema file path for testing when data columns do not match schema."""
+    """Create schema file path to test if data columns do not match schema."""
     test_schema_filepath = tmp_path / "schema.toml"
     test_schema_filepath.write_text(test_schema_wrong_col)
 
@@ -108,7 +110,10 @@ def test_rename_columns(input_data, test_schema, expout_data):
 
 # def test_rename_columns_missing_col(input_data, test_schema_wrong_col):
 #     """Test renaming columns when the columns in data do not match schema."""
-#     with pytest.raises(expected_exception=ValueError, match="schema does not exist in DataFrame"):
+#     with pytest.raises(
+#         expected_exception=ValueError,
+#         match="schema does not exist in DataFrame"
+#     ):
 #         rename_columns(input_data, test_schema_wrong_col, logger)
 
 
@@ -119,19 +124,28 @@ def test_read_with_schema(test_csv_file, test_schema_file, expout_data):
     assert isinstance(df, pd.DataFrame)
     # Check that the df is the same as the expected data
     pd.testing.assert_frame_equal(df, expout_data)
-    pytest.raises(KeyError, match="Old col name")  # Ensure old column is not present
+    pytest.raises(KeyError, match="Old col name")  # Ensure old col not present
 
 
-def test_read_with_schema_missing_col(test_csv_file, test_schema_file_wrong_col):
-    """Test reading a CSV with schema when the columns in data do not match schema."""
-    with pytest.raises(expected_exception=ValueError, match="schema does not exist in DataFrame"):
+def test_read_with_schema_missing_col(
+        test_csv_file, test_schema_file_wrong_col
+):
+    """Test reading CSV with schema if columns in data do not match schema."""
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="schema does not exist in DataFrame"
+    ):
         read_with_schema(test_csv_file, test_schema_file_wrong_col)
 
 
-def test_write_with_schema(tmp_path, input_data, test_schema_file, expout_data):
+def test_write_with_schema(
+        tmp_path, input_data, test_schema_file, expout_data
+):
     # Write the output data to a csv using the write function
     output_filepath = tmp_path / "test_output.csv"
-    write_with_schema(input_data, test_schema_file, output_filepath, "test_output.csv")
+    write_with_schema(
+        input_data, test_schema_file, output_filepath, "test_output.csv"
+    )
 
     # Read the output file back in
     output_df = pd.read_csv(output_filepath)
@@ -140,10 +154,16 @@ def test_write_with_schema(tmp_path, input_data, test_schema_file, expout_data):
     pd.testing.assert_frame_equal(output_df, expout_data)
 
 
-def test_write_with_schema_missing_col(tmp_path, input_data, test_schema_file_wrong_col):
-    """Test reading a CSV with schema when the columns in data do not match schema."""
+def test_write_with_schema_missing_col(
+        tmp_path, input_data, test_schema_file_wrong_col
+):
+    """Test reading CSV with schema if columns in data do not match schema."""
     output_filepath = tmp_path / "test_output.csv"
-    with pytest.raises(expected_exception=ValueError, match="schema does not exist in DataFrame"):
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="schema does not exist in DataFrame"
+    ):
         write_with_schema(
-            input_data, test_schema_file_wrong_col, output_filepath, "test_output.csv"
+            input_data, test_schema_file_wrong_col,
+            output_filepath, "test_output.csv"
         )

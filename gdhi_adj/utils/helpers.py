@@ -1,15 +1,18 @@
 """Define helper functions that wrap regularly-used functions."""
 
-import os
-import tomli  # tomli can be upgraded to tomllib in Python 3.11+
 import logging
-from typing import Union
+import os
 import pathlib
-import toml
-import pandas as pd
-from gdhi_adj.utils.logger import logger_creator
+from typing import Union
 
-logger = logger_creator()
+import pandas as pd
+import toml
+import tomli  # tomli can be upgraded to tomllib in Python 3.11+
+
+from gdhi_adj.utils.logger import GDHI_adj_logger
+
+GDHI_adj_LOGGER = GDHI_adj_logger(__name__)
+logger = GDHI_adj_LOGGER.logger
 
 
 def load_toml_config(path: Union[str, pathlib.Path]) -> dict | None:
@@ -70,8 +73,10 @@ def validate_schema(df: pd.DataFrame, schema: dict):
         schema (dict): The schema sourced from a TOML file to validate against.
 
     Raises:
-        ValueError: If a required column fromt he scheda is missing in the DataFrame.
-        TypeError: If a column's type does not match the expected type in the schema.
+        ValueError: If a required column fromt he scheda is missing in the
+        DataFrame.
+        TypeError: If a column's type does not match the expected type in the
+        schema.
     """
     type_map = {"int": int, "float": float, "str": str, "bool": bool}
 
@@ -83,7 +88,8 @@ def validate_schema(df: pd.DataFrame, schema: dict):
             raise ValueError(f"Missing expected column: {column}")
         if expected_type and not df[column].map(type).eq(expected_type).all():
             raise TypeError(
-                f"Column '{column}' does not match expected type {expected_type.__name__}"
+                f"Column '{column}' does not match expected type"
+                f"{expected_type.__name__}"
             )
 
 
@@ -92,7 +98,8 @@ def rename_columns(
 ) -> pd.DataFrame:
     """
     Rename columns in the DataFrame based on the schema.
-    Schema should be a dict where keys are new column names and values are dicts with 'old_name'.
+    Schema should be a dict where keys are new column names and values are
+    dicts with 'old_name'.
 
     Args:
         df (pd.DataFrame): The DataFrame to rename columns in.
@@ -106,7 +113,8 @@ def rename_columns(
         old_name = props.get("old_name")
         if old_name not in df.columns:
             raise ValueError(
-                f"Column '{old_name}' specified in schema does not exist in DataFrame"
+                f"Column '{old_name}' specified in schema does not exist"
+                " in DataFrame"
             )
         elif old_name and old_name in df.columns and old_name != new_name:
             df.rename(columns={old_name: new_name}, inplace=True)
@@ -122,7 +130,8 @@ def convert_column_types(
 
     Args:
         df (pd.DataFrame): The DataFrame to convert column types.
-        schema (dict): The schema containing column names and their expected data types.
+        schema (dict): The schema containing column names and their expected
+        data types.
         logger (logging.Logger): Logger for logging conversion actions.
 
     Returns:
@@ -141,31 +150,34 @@ def convert_column_types(
             original_dtype = df[column].dtype
             try:
                 if expected_type == int:
-                    df[column] = pd.to_numeric(df[column], errors="coerce").astype(
-                        "Int64"
-                    )
+                    df[column] = pd.to_numeric(
+                        df[column], errors="coerce"
+                    ).astype("Int64")
                 elif expected_type == float:
-                    df[column] = pd.to_numeric(df[column], errors="coerce").astype(
-                        "float"
-                    )
+                    df[column] = pd.to_numeric(
+                        df[column], errors="coerce"
+                    ).astype("float")
                 elif expected_type == str:
                     df[column] = df[column].astype(str)
                 elif expected_type == bool:
                     df[column] = df[column].astype(bool)
                 logger.info(
-                    f"Converted column '{column}' from {original_dtype} to {expected_type_str}"
+                    f"Converted column '{column}' from {original_dtype} to "
+                    f"{expected_type_str}."
                 )
             except Exception as e:
                 logger.warning(
                     (
-                        f"Failed to convert column '{column}' from {original_dtype} "
-                        f"to {expected_type_str}: {e}"
+                        f"Failed to convert column '{column}' from "
+                        f"{original_dtype} to {expected_type_str}: {e}"
                     )
                 )
     return df
 
 
-def read_with_schema(input_file_path: str, input_schema_path: str) -> pd.DataFrame:
+def read_with_schema(
+    input_file_path: str, input_schema_path: str
+) -> pd.DataFrame:
     """
     Reads in a csv file and compares it to a data dictionary schema.
 
@@ -174,7 +186,8 @@ def read_with_schema(input_file_path: str, input_schema_path: str) -> pd.DataFra
         input_schema_path (string): Filepath to the schema file in TOML format.
 
     Returns:
-        df (pd.DataFrame): Formatted dataFrame containing data from the csv file.
+        df (pd.DataFrame): Formatted dataFrame containing data from the csv
+        file.
     """
     # Load data
     logger.info(f"Loading data from {input_file_path}")
@@ -197,14 +210,19 @@ def read_with_schema(input_file_path: str, input_schema_path: str) -> pd.DataFra
 
 
 def write_with_schema(
-    df: pd.DataFrame, output_schema_path: str, output_dir: str, new_filename=None
+    df: pd.DataFrame,
+    output_schema_path: str,
+    output_dir: str,
+    new_filename=None,
 ):
     """
-    Writes a DataFrame to a CSV file, renaming columns and validating against a schema.
+    Writes a DataFrame to a CSV file, renaming columns and validating against a
+    schema.
 
     Args:
         df (pd.DataFrame): The final output DataFrame to write to CSV.
-        output_schema_path (str): Path to the output schema file in TOML format.
+        output_schema_path (str): Path to the output schema file in TOML
+        format.
         output_dir (str): Directory where the CSV file will be saved.
         new_filename (str, optional): New filename for the output CSV. If None,
                                       uses the original name.
@@ -213,7 +231,8 @@ def write_with_schema(
         ValueError: If the DataFrame does not match the schema.
 
     Returns:
-        None: Writes the DataFrame to a CSV file after validating against the schema.
+        None: Writes the DataFrame to a CSV file after validating against the
+        schema.
     """
     # Load and validate schema
     logger.info(f"Schema path specified in config: {output_schema_path}")
@@ -229,10 +248,14 @@ def write_with_schema(
     logger.info(f"Writing data to {output_dir}")
     # Ensure output directory exists
     if new_filename:
-        new_output_path = os.path.join(os.path.dirname(output_dir), new_filename)
+        new_output_path = os.path.join(
+            os.path.dirname(output_dir), new_filename
+        )
     else:
         new_output_path = output_dir  # fallback to original
-    logger.debug(f"Ensured output directory exists: {os.path.dirname(output_dir)}")
+    logger.debug(
+        f"Ensured output directory exists: {os.path.dirname(output_dir)}"
+    )
     # Convert DataFrame to CSV
     logger.info(f"Saving data to {new_output_path}")
     df.to_csv(new_output_path, index=False)

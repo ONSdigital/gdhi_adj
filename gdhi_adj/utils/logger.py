@@ -26,19 +26,46 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def logger_creator():
-    """Set up logging with a custom formatter for console output."""
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)  # Set logging level to INFO
+class GDHI_adj_logger:
+    """Custom logging class for use throughout the GDHI_adj pipeline.
 
-    # Create a console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    Parameters
+    ----------
+    name : str
+        The name of the file the logger is being created from.
+    """
 
-    # Apply the custom formatter to the console handler
-    console_handler.setFormatter(CustomFormatter())
+    def __init__(self, name):
+        """Initialise the logger class."""
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
 
-    # Add the handler to the logger
-    logger.addHandler(console_handler)
+        self.logger = logging.getLogger(name)
 
-    return logger
+        # self.LOG_FILE = "logfile.txt"
+        self.FORMAT = logging.Formatter(
+            "%(asctime)s (%(levelname)s) %(message)s (%(name)s)",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+
+        # Set root logging level to ensure handlers receive appropriate logs.
+        self.logger.root.setLevel(logging.INFO)
+        # Set the handlers initialised below.
+        # self._set_file_handler()
+        self._set_stream_handler()
+
+    def _set_file_handler(self):
+        """Set the file handler for the logger to append to text file."""
+        file_handler = logging.FileHandler(self.LOG_FILE, mode="a")
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(self.FORMAT)
+
+        self.logger.addHandler(file_handler)
+
+    def _set_stream_handler(self):
+        """Set the stream handler for the logger to write to screen."""
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        stream_handler.setFormatter(self.FORMAT)
+
+        self.logger.addHandler(stream_handler)

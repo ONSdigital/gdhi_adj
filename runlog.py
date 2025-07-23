@@ -1,6 +1,6 @@
 import os
-from datetime import datetime
 import uuid
+from datetime import datetime
 
 
 class RunLog:
@@ -18,7 +18,9 @@ class RunLog:
         # config based attrs
         self.config = config
         self.environment = config["global"]["platform"]
-        self.logs_folder = config[f"{self.environment}_paths"]["logs_foldername"]
+        self.logs_folder = config[f"{self.environment}_paths"][
+            "logs_foldername"
+        ]
         self.log_filenames = config["log_filenames"]
         # user information
         self.user = self._generate_username()
@@ -36,7 +38,8 @@ class RunLog:
             self.mkdir_func(self.run_logs_folder)
 
     def generate_and_save_run_id(self):
-        """Generates a run ID and saves it to a text file in the run_logs folder."""
+        """Generates a run ID and saves it to a text file in the run_logs
+        folder."""
         run_id = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4()}"
         run_id_file = os.path.join(self.run_logs_folder, "run_ids.txt")
         with open(run_id_file, "a") as file:

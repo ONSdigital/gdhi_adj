@@ -1,6 +1,6 @@
 [flake8]
 
-max-line-length = 100
+max-line-length = 79
 
 exclude =
     .local/
@@ -10,3 +10,4 @@ exclude =
     docs/
     _version.py
     __init__.py
+    config/config.toml
