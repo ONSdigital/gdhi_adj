@@ -9,7 +9,7 @@ output_file_path = "D:/" #Set output directory here to D:drive
 #To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
 #sharepoint site, go into the subfolder 'GDHI' and open '2025_manual_adjustments'
 #and click the 'sync' button to sync to your local OneDrive.
-input_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Worked_Example/Manual_Adjustment_Pre_Processing_test_data.csv"
+input_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Worked_Example/Manual_Adjustment_Pre_Processing_test_data_all.csv"
 output_dir = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/"
 
 [pipeline_settings]

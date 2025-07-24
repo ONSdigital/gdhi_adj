@@ -4,6 +4,7 @@ import os
 
 from gdhi_adj.preprocess import (
     calc_iqr,
+    calc_lad_mean,
     calc_zscores,
     create_master_flag,
     pivot_long_dataframe,
@@ -66,6 +67,8 @@ def run_pipeline(config_path):
         df = calc_iqr(df, raw_prefix, "lsoa_code", "gdhi_annual")
 
         df = create_master_flag(df)
+
+        df = calc_lad_mean(df)
 
         # Save output file with new filename if specified
         if config["pipeline_settings"]["output_data"]:

@@ -92,7 +92,7 @@ def calc_zscores(
     """
     df[score_prefix + "_zscore"] = df.groupby(group_col)[
         pct_change_col
-    ].transform(lambda x: zscore(x, nan_policy="omit"))
+    ].transform(lambda x: zscore(x, nan_policy="omit", ddof=1))
 
     df["z_" + score_prefix + "_flag"] = df[score_prefix + "_zscore"] > 3.0
     return df.drop(columns=[score_prefix + "_zscore"])
@@ -187,3 +187,31 @@ def create_master_flag(df: pd.DataFrame) -> pd.DataFrame:
             + ["backward_pct_change", "forward_pct_change"]
         )
     )
+
+
+def calc_lad_mean(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Calculates the mean GDHI for each non outlier LSOA in the DataFrame.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+
+    Returns:
+        pd.DataFrame: The DataFrame with an added 'mean_non_out_gdhi' column.
+    """
+    # Separate out LSOAs that are not flagged
+    non_outlier_df = df[~df["master_flag"]]
+    # currently using this to match Jim's averages
+    # outlier_lsoas = ["E01015597", "E01018153"]
+    # non_outlier_df = df[~df["lsoa_code"].isin(outlier_lsoas)]
+
+    # Aggregate GDHI values for non-outlier LSOAs by LADs
+    non_outlier_df = non_outlier_df.groupby(["lad_code", "year"]).agg(
+        mean_non_out_gdhi=("gdhi_annual", "mean")
+    )
+
+    df = df.join(non_outlier_df, on=["lad_code", "year"], how="left")
+
+    return df
