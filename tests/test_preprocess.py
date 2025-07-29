@@ -113,6 +113,11 @@ def test_calc_zscores():
         "backward_pct_change": [1.0, 1.5, -1.2, 1.6, 50.0, 2.0, 1.1, -0.2, 1.2,
                                 -1.0, 0.9, -2.0, -0.6, 0.5, 0.8, 1.3, -1.0,
                                 0.9, 1.3, -1.1, -0.7, 0.7, 1.1, -0.3],
+        "bkwd_zscore": [-0.243105, 0.941783, -0.396278, 1.021934, 3.168487,
+                        1.342541, -0.236142, -0.420796, -0.229180, -1.062010,
+                        -0.250067, -1.863527, -0.354504, 0.140265, -0.257030,
+                        0.781479, -0.382354, 0.460872, -0.222218, -1.142162,
+                        -0.361466, 0.300569, -0.236142, -0.500948],
         "z_bkwd_flag": [False, False, False, False, True, False, False, False,
                         False, False, False, False, False, False, False, False,
                         False, False, False, False, False, False, False, False]
@@ -127,7 +132,7 @@ def test_calc_iqr():
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2", "E1",
                       "E2"],
-        "year": [2001, 2002, 2001, 2002, 2001, 2002, 2001, 2002, 2001, 2002],
+        "year": [2001, 2001, 2002, 2002, 2003, 2003, 2004, 2004, 2005, 2005],
         "backward_pct_change": [1.0, 1.1, -1.2, 1.6, 10.0, 2.0, -0.9, -1.5,
                                 -0.6, -2.5]
     })
@@ -139,9 +144,17 @@ def test_calc_iqr():
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2", "E1",
                       "E2"],
-        "year": [2001, 2002, 2001, 2002, 2001, 2002, 2001, 2002, 2001, 2002],
+        "year": [2001, 2001, 2002, 2002, 2003, 2003, 2004, 2004, 2005, 2005],
         "backward_pct_change": [1.0, 1.1, -1.2, 1.6, 10.0, 2.0, -0.9, -1.5,
                                 -0.6, -2.5],
+        "bkwd_q1": [-0.9, -1.5, -0.9, -1.5, -0.9, -1.5, -0.9, -1.5, -0.9, -1.5
+                    ],
+        "bkwd_q3": [1.0, 1.6, 1.0, 1.6, 1.0, 1.6, 1.0, 1.6, 1.0, 1.6],
+        "bkwd_iqr": [1.9, 3.1, 1.9, 3.1, 1.9, 3.1, 1.9, 3.1, 1.9, 3.1],
+        "bkwd_lower_bound": [-6.6, -10.8, -6.6, -10.8, -6.6, -10.8, -6.6,
+                             -10.8, -6.6, -10.8],
+        "bkwd_upper_bound": [6.7, 10.9, 6.7, 10.9, 6.7, 10.9, 6.7, 10.9, 6.7,
+                             10.9],
         "iqr_bkwd_flag": [False, False, False, False, True, False, False,
                           False, False, False]
     })
@@ -172,8 +185,16 @@ def test_create_master_flag():
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E1", "E2", "E2", "E3", "E3"],
         "year": [2001, 2002, 2001, 2002, 2001, 2002],
-        "z_master_flag": [True, True, False, False, False, False],
-        "iqr_master_flag": [False, False, True, True, False, False],
+        "backward_pct_change": [1.0, 1.1, -1.2, 1.6, 10.0, 2.0],
+        "forward_pct_change": [1.0, 1.1, -1.2, 1.6, 10.0, 6.0],
+        "z_bkwd_flag": [True, False, False, False, True, True],
+        "z_frwd_flag": [True, False, False, False, False, False],
+        "z_raw_flag": [True, False, False, False, False, False],
+        "iqr_bkwd_flag": [False, False, False, False, False, False],
+        "iqr_frwd_flag": [False, False, True, False, False, False],
+        "iqr_raw_flag": [False, False, True, True, True, False],
+        "master_z_flag": [True, True, False, False, False, False],
+        "master_iqr_flag": [False, False, True, True, False, False],
         "master_flag": [True, True, True, True, False, False]
     })
 

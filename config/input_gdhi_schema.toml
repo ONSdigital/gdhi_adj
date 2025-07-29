@@ -13,3 +13,7 @@ Deduced_Data_Type = "str"
 [lad_name]
 old_name = "LAD name"
 Deduced_Data_Type = "str"
+
+[transaction_code]
+old_name = "Transaction Code"
+Deduced_Data_Type = "str"

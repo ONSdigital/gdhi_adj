@@ -95,7 +95,7 @@ def calc_zscores(
     ].transform(lambda x: zscore(x, nan_policy="omit", ddof=1))
 
     df["z_" + score_prefix + "_flag"] = df[score_prefix + "_zscore"] > 3.0
-    return df.drop(columns=[score_prefix + "_zscore"])
+    return df
 
 
 def calc_iqr(
@@ -137,15 +137,7 @@ def calc_iqr(
         df[val_col] < df[iqr_prefix + "_lower_bound"]
     ) | (df[val_col] > df[iqr_prefix + "_upper_bound"])
 
-    return df.drop(
-        columns=[
-            iqr_prefix + "_q1",
-            iqr_prefix + "_q3",
-            iqr_prefix + "_iqr",
-            iqr_prefix + "_lower_bound",
-            iqr_prefix + "_upper_bound",
-        ]
-    )
+    return df
 
 
 def create_master_flag(df: pd.DataFrame) -> pd.DataFrame:
@@ -161,32 +153,26 @@ def create_master_flag(df: pd.DataFrame) -> pd.DataFrame:
     # Create a master flag that is True if any of the IQR columns are True
     z_score_cols = [col for col in df.columns if col[0:2] == "z_"]
     z_count = df.groupby("lsoa_code").agg({col: "sum" for col in z_score_cols})
-    z_count["z_master_flag"] = (z_count[z_score_cols] >= 1).sum(axis=1) >= 2
+    z_count["master_z_flag"] = (z_count[z_score_cols] >= 1).sum(axis=1) >= 2
 
     # Create a master flag that is True if any of the IQR columns are True
     iqr_score_cols = [col for col in df.columns if col[0:4] == "iqr_"]
     iqr_count = df.groupby("lsoa_code").agg(
         {col: "sum" for col in iqr_score_cols}
     )
-    iqr_count["iqr_master_flag"] = (iqr_count[iqr_score_cols] >= 1).sum(
+    iqr_count["master_iqr_flag"] = (iqr_count[iqr_score_cols] >= 1).sum(
         axis=1
     ) >= 2
 
     # Join the master flags back to the original DataFrame
-    df = df.join(z_count[["z_master_flag"]], on="lsoa_code", how="left")
-    df = df.join(iqr_count[["iqr_master_flag"]], on="lsoa_code", how="left")
+    df = df.join(z_count[["master_z_flag"]], on="lsoa_code", how="left")
+    df = df.join(iqr_count[["master_iqr_flag"]], on="lsoa_code", how="left")
 
-    # Create a master flag that is True if either z_master_flag or iqr_master
+    # Create a master flag that is True if either master_z_flag or iqr_master
     # flag is True
-    df["master_flag"] = df["z_master_flag"] | df["iqr_master_flag"]
+    df["master_flag"] = df["master_z_flag"] | df["master_iqr_flag"]
 
-    return df.drop(
-        columns=(
-            z_score_cols
-            + iqr_score_cols
-            + ["backward_pct_change", "forward_pct_change"]
-        )
-    )
+    return df
 
 
 def calc_lad_mean(
@@ -215,3 +201,46 @@ def calc_lad_mean(
     df = df.join(non_outlier_df, on=["lad_code", "year"], how="left")
 
     return df
+
+
+def constrain_to_reg_acc(
+    df: pd.DataFrame, reg_acc: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Calculate contrained and unconstrained values for each outlier case.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame with outliers to be constrained.
+        reg_acc (pd.DataFrame): The regional accounts DataFrame.
+
+    Returns:
+        pd.DataFrame: The constrained DataFrame.
+    """
+    print(df.columns)
+    print(reg_acc.columns)
+    # Ensure that both DataFrames have the same columns for merging
+    if not reg_acc.columns.isin(df.columns).all():
+        raise ValueError("DataFrames have different columns for joining.")
+
+    reg_acc.rename(columns={"gdhi_annual": "conlad_gdhi"}, inplace=True)
+
+    df = df.merge(
+        reg_acc[["lad_code", "year", "conlad_gdhi"]],
+        on=["lad_code", "year"],
+        how="left",
+    )
+
+    df["unconlad"] = df["gdhi_annual"] + df["mean_non_out_gdhi"]
+
+    df["rate"] = df["conlad_gdhi"] / df["unconlad"]
+
+    df["conlsoa_gdhi"] = df["gdhi_annual"] * df["rate"]
+    df["conlsoa_mean"] = df["mean_non_out_gdhi"] * df["rate"]
+
+    return df.drop(
+        columns=[
+            "conlad_gdhi",
+            "unconlad",
+            "rate",
+        ]
+    )
