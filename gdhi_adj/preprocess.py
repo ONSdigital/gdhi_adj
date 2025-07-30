@@ -219,8 +219,6 @@ def constrain_to_reg_acc(
     Returns:
         pd.DataFrame: The constrained DataFrame.
     """
-    print(df.columns)
-    print(reg_acc.columns)
     # Ensure that both DataFrames have the same columns for merging
     if not reg_acc.columns.isin(df.columns).all():
         raise ValueError("DataFrames have different columns for joining.")

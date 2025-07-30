@@ -1,9 +1,11 @@
 import pandas as pd
+import pytest
 
 from gdhi_adj.preprocess import (
     calc_iqr,
     calc_lad_mean,
     calc_zscores,
+    constrain_to_reg_acc,
     create_master_flag,
     pivot_long_dataframe,
     rate_of_change,
@@ -226,3 +228,63 @@ def test_calc_lad_mean():
     })
 
     pd.testing.assert_frame_equal(result_df, expected_df)
+
+
+def test_constrain_to_reg_acc():
+    """Test the constrain_to_reg_acc function."""
+    # Create a sample DataFrame
+    df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2", "E3", "E1", "E2", "E3"],
+        "lad_code": ["E01", "E01", "E02", "E01", "E01", "E02"],
+        "year": [2001, 2001, 2001, 2002, 2002, 2002],
+        "gdhi_annual": [10, 20, 30, 45, 50, 70],
+        "mean_non_out_gdhi": [15, 15, 25, 45, 45, 50],
+    })
+
+    # Define regional and local authority codes
+    reg_acc = pd.DataFrame({
+        "lad_code": ["E01", "E02", "E01", "E02"],
+        "year": [2001, 2001, 2002, 2002],
+        "gdhi_annual": [100, 200, 300, 400]
+    })
+
+    # Constrain to regional and local authority codes
+    result_df = constrain_to_reg_acc(df, reg_acc)
+
+    # Expected DataFrame after constraining
+    expected_df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2", "E3", "E1", "E2", "E3"],
+        "lad_code": ["E01", "E01", "E02", "E01", "E01", "E02"],
+        "year": [2001, 2001, 2001, 2002, 2002, 2002],
+        "gdhi_annual": [10, 20, 30, 45, 50, 70],
+        "mean_non_out_gdhi": [15, 15, 25, 45, 45, 50],
+        "conlsoa_gdhi": [40.0, 57.143, 109.091, 150.0, 157.895, 233.333],
+        "conlsoa_mean": [60.0, 42.857, 90.909, 150.0, 142.105, 166.667]
+    })
+
+    pd.testing.assert_frame_equal(result_df, expected_df, rtol=1e-3)
+
+
+def test_constrain_to_reg_acc_col_mismatch():
+    """Test the constrain_to_reg_acc function with column mismatch."""
+    # Create a sample DataFrame with different column names
+    df = pd.DataFrame({
+        "lsoa_code": [],
+        "lad_code": [],
+        "year": [],
+        "gdhi_annual": [],
+    })
+
+    # Define regional and local authority codes
+    reg_acc = pd.DataFrame({
+        "lad_code": [],
+        "year": [],
+        "wrong_col": []
+    })
+
+    # Ensure error is raised if regional accounts columns aren't present in df
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="DataFrames have different columns"
+    ):
+        constrain_to_reg_acc(df, reg_acc)
