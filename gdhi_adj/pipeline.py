@@ -1,8 +1,13 @@
 """Title for pipeline.py module"""
 
+from gdhi_adj.adjustment import run_adjustment
 from gdhi_adj.preprocess import run_preprocessing
 from gdhi_adj.utils.helpers import load_toml_config
 from gdhi_adj.utils.logger import GDHI_adj_logger
+
+# Initialize logger
+GDHI_adj_LOGGER = GDHI_adj_logger(__name__)
+logger = GDHI_adj_LOGGER.logger
 
 
 def run_pipeline(config_path):
@@ -10,10 +15,6 @@ def run_pipeline(config_path):
     Args:
         config_path (str): Path to the configuration file.
     """
-    # Initialize logger
-    GDHI_adj_LOGGER = GDHI_adj_logger(__name__)
-    logger = GDHI_adj_LOGGER.logger
-
     logger.info("Pipeline started")
 
     # Load config
@@ -22,6 +23,9 @@ def run_pipeline(config_path):
     try:
         if config["user_settings"]["preprocessing"]:
             run_preprocessing(config)
+
+        if config["user_settings"]["adjustment"]:
+            run_adjustment(config)
 
     except Exception as e:
         logger.error(

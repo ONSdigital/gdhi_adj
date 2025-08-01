@@ -239,6 +239,7 @@ def test_constrain_to_reg_acc():
         "year": [2001, 2001, 2001, 2002, 2002, 2002],
         "gdhi_annual": [10, 20, 30, 45, 50, 70],
         "mean_non_out_gdhi": [15, 15, 25, 45, 45, 50],
+        "master_flag": [True, True, False, False, False, True],
     })
 
     # Define regional and local authority codes
@@ -258,6 +259,7 @@ def test_constrain_to_reg_acc():
         "year": [2001, 2001, 2001, 2002, 2002, 2002],
         "gdhi_annual": [10, 20, 30, 45, 50, 70],
         "mean_non_out_gdhi": [15, 15, 25, 45, 45, 50],
+        "master_flag": ["TRUE", "TRUE", "MEAN", "MEAN", "MEAN", "TRUE"],
         "conlsoa_gdhi": [40.0, 57.143, 109.091, 150.0, 157.895, 233.333],
         "conlsoa_mean": [60.0, 42.857, 90.909, 150.0, 142.105, 166.667]
     })

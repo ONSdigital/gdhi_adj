@@ -238,6 +238,10 @@ def constrain_to_reg_acc(
     df["conlsoa_gdhi"] = df["gdhi_annual"] * df["rate"]
     df["conlsoa_mean"] = df["mean_non_out_gdhi"] * df["rate"]
 
+    df["master_flag"] = df["master_flag"].replace(
+        {True: "TRUE", False: "MEAN"}
+    )
+
     return df.drop(
         columns=[
             "conlad_gdhi",
@@ -245,6 +249,31 @@ def constrain_to_reg_acc(
             "rate",
         ]
     )
+
+
+def pivot_wide_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Pivots the DataFrame from long to wide format.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame in long format.
+        index_cols (list): List of columns to use as index in the pivot.
+
+    Returns:
+        pd.DataFrame: The pivoted DataFrame in wide format.
+    """
+    df = df.pivot(
+        index="lsoa_code",
+        columns="year",
+        values=[
+            "gdhi_annual",
+            "mean_non_out_gdhi",
+            "conlsoa_gdhi",
+            "conlsoa_mean",
+        ],
+    )
+
+    return df
 
 
 def run_preprocessing(config: dict) -> None:
@@ -260,7 +289,8 @@ def run_preprocessing(config: dict) -> None:
     6. Create master flags.
     7. Calculate LAD mean GDHI.
     8. Constrain outliers to regional accounts.
-    9. Save the processed data.
+    9. Pivot the DataFrame back to wide format.
+    10. Save the processed data.
 
     Args:
         config (dict): Configuration dictionary containing user settings and
@@ -269,33 +299,40 @@ def run_preprocessing(config: dict) -> None:
         None: The function does not return any value. It saves the processed
         DataFrame to a CSV file.
     """
-    # Initialize logger
+    logger.info("Preprocessing started")
+
+    logger.info("Loading configuration settings")
     local_or_shared = config["user_settings"]["local_or_shared"]
-    filepath_dict = config[f"{local_or_shared}_settings"]
+    filepath_dict = config[f"preprocessing_{local_or_shared}_settings"]
+
     input_gdhi_file_path = (
         "C:/Users/" + os.getlogin() + filepath_dict["input_gdhi_file_path"]
     )
     input_ra_lad_file_path = (
         "C:/Users/" + os.getlogin() + filepath_dict["input_ra_lad_file_path"]
     )
-    output_dir = "C:/Users/" + os.getlogin() + filepath_dict["output_dir"]
+
     input_gdhi_schema_path = config["pipeline_settings"][
         "input_gdhi_schema_path"
     ]
     input_ra_lad_schema_path = config["pipeline_settings"][
         "input_ra_lad_schema_path"
     ]
+
+    output_dir = "C:/Users/" + os.getlogin() + filepath_dict["output_dir"]
     output_schema_path = config["pipeline_settings"]["output_schema_path"]
     new_filename = config["pipeline_settings"].get("output_filename", None)
-    # Import data
+    logger.info("Configuration settings loaded successfully")
+
+    logger.info("Reading in data with schemas")
     df = read_with_schema(input_gdhi_file_path, input_gdhi_schema_path)
     ra_lad = read_with_schema(input_ra_lad_file_path, input_ra_lad_schema_path)
 
-    # Pivot data to long format
+    logger.info("Pivoting data to long format")
     df = pivot_long_dataframe(df, "year", "gdhi_annual")
     ra_lad = pivot_long_dataframe(ra_lad, "year", "gdhi_annual")
 
-    # Calculate annual rate of change
+    logger.info("Calculating rate of change")
     df = rate_of_change(
         False, df, ["lsoa_code", "year"], "lsoa_code", "gdhi_annual"
     )
@@ -308,7 +345,7 @@ def run_preprocessing(config: dict) -> None:
     forward_prefix = "frwd"
     raw_prefix = "raw"
 
-    # Calculate outlier identification scores and create flags
+    logger.info("Calculating z-scores and IQRs")
     df = calc_zscores(df, backward_prefix, "lsoa_code", "backward_pct_change")
     df = calc_zscores(df, forward_prefix, "lsoa_code", "forward_pct_change")
     df = calc_zscores(df, raw_prefix, "lsoa_code", "gdhi_annual")
@@ -344,13 +381,17 @@ def run_preprocessing(config: dict) -> None:
 
     df = df[cols_to_keep]
 
+    logger.info("Calculating LAD mean and constraining to regional accounts")
     df = calc_lad_mean(df)
 
     df = constrain_to_reg_acc(df, ra_lad)
+
+    logger.info("Pivoting data back to wide format")
+    # print(df)
+    # df = pivot_wide_dataframe(df)
+    # print(df)
 
     # Save output file with new filename if specified
     if config["pipeline_settings"]["output_data"]:
         # Write DataFrame to CSV
         write_with_schema(df, output_schema_path, output_dir, new_filename)
-        print(df)
-        # print(df[df["master_flag"] == True]["lsoa_code"].unique())
