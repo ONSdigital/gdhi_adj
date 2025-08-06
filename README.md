@@ -38,5 +38,24 @@ This project runs controlled adjustments of GDHI figures at LSOA levels and reno
    pre-commit install
    pre-commit run -a
    ```
-9. **Review and edit `config/config.toml`**
-10. **Run the file `main.py`**
+
+## Running
+
+1. **Config settings `config/config.toml`:**
+    - Check settings in config/config.toml to ensure pipeline runs as intended.
+    - Only need run either preprocessing or adjustment at any one time, as the
+      output from preprocessing requires manual analysis before the input is
+      created for the adjustment module.
+      ```
+      preprocessing = true
+      adjustment = false
+      ```
+    - Provided you have been able to sync Subnational Staistics sharepoint
+      to your OneDrive, set local_or_shared to "shared", if using local:
+      local filepaths will have to be input manually.
+    - If you want to export the final output from the module you are running,
+      set output_data in pipeline_settings to true
+      ```
+      output_data = true
+      ```
+2. **Run pipeline from `main.py`**
