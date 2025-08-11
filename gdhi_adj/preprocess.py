@@ -323,20 +323,20 @@ def pivot_wide_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     # Pivot outlier df
     df_outlier = df.drop(columns=["mean_non_out_gdhi", "conlsoa_mean"])
 
-    df_long_outlier = pivot_long_then_wide(
+    df_wide_outlier = pivot_long_then_wide(
         df_outlier, "gdhi_annual", "conlsoa_gdhi"
     )
 
     # Pivot mean df
     df_mean = df.drop(columns=["gdhi_annual", "conlsoa_gdhi"])
 
-    df_long_mean = pivot_long_then_wide(
+    df_wide_mean = pivot_long_then_wide(
         df_mean, "mean_non_out_gdhi", "conlsoa_mean"
     )
-    df_long_mean["master_flag"] = "MEAN"
+    df_wide_mean["master_flag"] = "MEAN"
 
     # Join DataFrames and sort to match desired output for PowerBI
-    df_wide = pd.concat([df_long_outlier, df_long_mean], ignore_index=True)
+    df_wide = pd.concat([df_wide_outlier, df_wide_mean], ignore_index=True)
     df_wide.sort_values(
         by=["lsoa_code", "master_flag"], ascending=[True, False], inplace=True
     )
@@ -389,8 +389,8 @@ def run_preprocessing(config: dict) -> None:
     ]
 
     output_dir = "C:/Users/" + os.getlogin() + filepath_dict["output_dir"]
-    output_schema_path = config["pipeline_settings"]["output_schema_path"]
-    new_filename = config["pipeline_settings"].get("output_filename", None)
+    output_schema_path = filepath_dict["output_schema_path"]
+    new_filename = filepath_dict.get("output_filename", None)
     logger.info("Configuration settings loaded successfully")
 
     logger.info("Reading in data with schemas")
@@ -451,16 +451,8 @@ def run_preprocessing(config: dict) -> None:
 
     logger.info("Calculating LAD mean and constraining to regional accounts")
     df = calc_lad_mean(df)
-    # df.to_csv(
-    #     output_dir + "manual_adj_preprocessing_lad_mean.csv",
-    #     index=False,
-    # )
 
     df = constrain_to_reg_acc(df, ra_lad)
-    # df.to_csv(
-    #     output_dir + "manual_adj_preprocessing_constrained_reg_acc.csv",
-    #     index=False,
-    # )
 
     logger.info("Pivoting data back to wide format")
     df = pivot_wide_dataframe(df)

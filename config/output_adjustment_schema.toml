@@ -1,0 +1,7 @@
+["LSOA code"]
+old_name = "lsoa_code"
+Deduced_Data_Type = "str"
+
+["Transaction Code"]
+old_name = "transaction_code"
+Deduced_Data_Type = "str"
