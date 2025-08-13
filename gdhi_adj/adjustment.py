@@ -192,8 +192,7 @@ def calc_scaling_factors(df: pd.DataFrame) -> pd.DataFrame:
     Calculate scaling factors for the adjustment.
 
     Args:
-        df_uncon (pd.DataFrame): DataFrame with unconstrained GDHI data.
-        df_con (pd.DataFrame): DataFrame with constrained GDHI data.
+        df (pd.DataFrame): DataFrame with unconstrained and constrained data.
 
     Returns:
         pd.DataFrame: DataFrame with scaling factors added.
@@ -229,9 +228,11 @@ def create_anaomaly_list(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: DataFrame with unique anomalies listed.
     """
     anomaly_lsoa = df[df["adjust"].fillna(False).astype(bool)]
-    anomaly_lsoa = anomaly_lsoa[
-        ["lsoa_code", "transaction_code", "year_to_adjust"]
-    ].drop_duplicates()
+    anomaly_lsoa = (
+        anomaly_lsoa[["lsoa_code", "transaction_code", "year_to_adjust"]]
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
 
     return anomaly_lsoa
 

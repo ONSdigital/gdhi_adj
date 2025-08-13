@@ -1,14 +1,19 @@
 import pandas as pd
 import pytest
 
-from gdhi_adj.adjustment import (  # join_analyst_constrained_data,
+from gdhi_adj.adjustment import (
+    calc_adjustment_headroom_val,
+    calc_scaling_factors,
+    create_anaomaly_list,
     filter_lsoa_data,
+    join_analyst_constrained_data,
+    join_analyst_unconstrained_data,
+    pivot_adjustment_long,
 )
 
 
 def test_filter_lsoa_data():
     """Test the filter_lsoa_data function."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E3"],
         "lad_code": ["E01", "E02", "E03"],
@@ -18,10 +23,8 @@ def test_filter_lsoa_data():
         "year": [2003, 2004, 2005],
         "2002": [10, 20, 30],
     })
-    # Call the function to filter the DataFrame
     result_df = filter_lsoa_data(df)
 
-    # Expected DataFrame after filtering
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1"],
         "lad_code": ["E01"],
@@ -32,7 +35,6 @@ def test_filter_lsoa_data():
 
     pd.testing.assert_frame_equal(result_df, expected_df, check_dtype=False)
 
-    # Create a sample DataFrame with a mismatch
     df_mismatch = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E3"],
         "lad_code": ["E01", "E02", "E03"],
@@ -42,9 +44,295 @@ def test_filter_lsoa_data():
         "year": [2003, 2004, 2005]
     })
 
-    # Check if ValueError is raised for mismatch master_flag and adjust columns
     with pytest.raises(
         expected_exception=ValueError,
         match="Mismatch: master_flag and Adjust column booleans do not match."
     ):
         filter_lsoa_data(df_mismatch)
+
+
+def test_join_analyst_constrained_data():
+    """Test the join_analyst_constrained_data function."""
+    df_constrained = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "2002": [10.0, 11.0],
+        "2003": [20.0, 21.0]
+    })
+
+    df_analyst = pd.DataFrame({
+        "lsoa_code": ["E1"],
+        "lad_code": ["E01"],
+        "transaction_code": ["T1"],
+        "adjust": [True],
+        "year": [2002]
+    })
+
+    result_df = join_analyst_constrained_data(df_constrained, df_analyst)
+
+    expected_df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "CON_2002": [10.0, 11.0],
+        "CON_2003": [20.0, 21.0],
+        "adjust": [True, float("NaN")],
+        "year": [2002, float("NaN")]
+    })
+
+    pd.testing.assert_frame_equal(result_df, expected_df)
+
+
+def test_join_analyst_constrained_data_adjust_failed_merge():
+    """Test the join_analyst_constrained_data function where the analyst data
+    fails to join."""
+    df_constrained = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "2002": [10.0, 11.0],
+        "2003": [20.0, 21.0]
+    })
+
+    df_analyst = pd.DataFrame({
+        "lsoa_code": ["E1"],
+        "lad_code": ["E01"],
+        "transaction_code": ["T2"],  # Different transaction_code
+        "adjust": [True],
+        "year": [2002]
+    })
+
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="Number of rows to adjust between analyst and constrained data"
+    ):
+        join_analyst_constrained_data(df_constrained, df_analyst)
+
+
+def test_join_analyst_constrained_data_row_increase():
+    """Test the join_analyst_constrained_data function where merging the
+    analyst data increases the number of rows."""
+    df_constrained = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "2002": [10.0, 11.0],
+        "2003": [20.0, 21.0]
+    })
+
+    df_analyst = pd.DataFrame({
+        "lsoa_code": ["E1", "E1"],  # Duplicate entries for E1
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "adjust": [True, True],
+        "year": [2002, 2003]
+    })
+
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="Number of rows of constrained data after join has increased."
+    ):
+        join_analyst_constrained_data(df_constrained, df_analyst)
+
+
+def test_join_analyst_unconstrained_data():
+    """Test the join_analyst_unconstrained_data function."""
+    df_unconstrained = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "2002": [10.0, 11.0],
+        "2003": [20.0, 21.0]
+    })
+
+    df_analyst = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "adjust": [True, float("NaN")],
+        "year": [2002, float("NaN")],
+        "CON_2002": [10.0, 11.0],
+        "CON_2003": [20.0, 21.0]
+    })
+
+    result_df = join_analyst_unconstrained_data(df_unconstrained, df_analyst)
+
+    expected_df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "2002": [10.0, 11.0],
+        "2003": [20.0, 21.0],
+        "adjust": [True, float("NaN")],
+        "year": [2002, float("NaN")],
+        "CON_2002": [10.0, 11.0],
+        "CON_2003": [20.0, 21.0]
+    })
+
+    pd.testing.assert_frame_equal(result_df, expected_df)
+
+
+def test_join_analyst_unconstrained_data_adjust_failed_merge():
+    """Test the join_analyst_unconstrained_data function where the analyst data
+    fails to join."""
+    df_constrained = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "2002": [10.0, 11.0],
+        "2003": [20.0, 21.0]
+    })
+
+    df_analyst = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T2", "T1"],  # Different transaction_code
+        "adjust": [True, float("NaN")],
+        "year": [2002, float("NaN")],
+        "CON_2002": [10.0, 11.0],
+        "CON_2003": [20.0, 21.0]
+    })
+
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="Number of rows to adjust between analyst and unconstrained data"
+    ):
+        join_analyst_unconstrained_data(df_constrained, df_analyst)
+
+
+def test_join_analyst_unconstrained_data_row_increase():
+    """Test the join_analyst_unconstrained_data function where merging the
+    analyst data increases the number of rows."""
+    df_constrained = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "2002": [10.0, 11.0],
+        "2003": [20.0, 21.0]
+    })
+
+    df_analyst = pd.DataFrame({
+        "lsoa_code": ["E1", "E1"],  # Duplicate entries for E1
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "adjust": [True, float("NaN")],
+        "year": [2002, float("NaN")],
+        "CON_2002": [10.0, 11.0],
+        "CON_2003": [20.0, 21.0]
+    })
+
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="Number of rows of unconstrained data after join has increased."
+    ):
+        join_analyst_unconstrained_data(df_constrained, df_analyst)
+
+
+def test_pivot_adjustment_long():
+    """Test the pivot_adjustment_long function."""
+    df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "lad_code": ["E01", "E01"],
+        "transaction_code": ["T1", "T1"],
+        "2002": [10.0, 11.0],
+        "2003": [20.0, 21.0],
+        "CON_2002": [30.0, 31.0],
+        "CON_2003": [40.0, 41.0],
+        "adjust": [True, float("NaN")],
+        "year": [2002, float("NaN")]
+    })
+
+    result_df = pivot_adjustment_long(df)
+
+    expected_df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2", "E1", "E2"],
+        "lad_code": ["E01", "E01", "E01", "E01"],
+        "transaction_code": ["T1", "T1", "T1", "T1"],
+        "adjust": [True, float("NaN"), True, float("NaN")],
+        "year_to_adjust": [2002, float("NaN"), 2002, float("NaN")],
+        "year": [2002, 2002, 2003, 2003],
+        "uncon_gdhi": [10.0, 11.0, 20.0, 21.0],
+        "con_gdhi": [30.0, 31.0, 40.0, 41.0]
+    })
+
+    pd.testing.assert_frame_equal(result_df, expected_df, check_dtype=False)
+
+
+def test_calc_scaling_factors():
+    """Test the calc_scaling_factors function."""
+    df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2", "E3", "E1", "E2", "E3"],
+        "lad_code": ["E01", "E01", "E01", "E01", "E01", "E01"],
+        "transaction_code": ["T1", "T1", "T2", "T1", "T1", "T2"],
+        "year": [2002, 2002, 2002, 2003, 2003, 2003],
+        "uncon_gdhi": [10.0, 15.0, 25.0, 26.0, 50.0, 40.0],
+        "con_gdhi": [30.0, 40.0, 10.0, 11.0, 20.0, 30.0]
+    })
+
+    result_df = calc_scaling_factors(df)
+
+    expected_df = pd.DataFrame({
+        "transaction_code": ["T1", "T1", "T2", "T2"],
+        "year": [2002, 2003, 2002, 2003],
+        "uncon_gdhi": [25.0, 76.0, 25.0, 40.0],
+        "con_gdhi": [70.0, 31.0, 10.0, 30.0],
+        "scaling": [2.8, 0.407895, 0.4, 0.75]
+    })
+
+    pd.testing.assert_frame_equal(result_df, expected_df)
+
+
+def test_create_anaomaly_list():
+    """Test create_anaomaly_list function."""
+    df = pd.DataFrame({
+        "lsoa_code": ["E1", "E1", "E2", "E3", "E3", "E3", "E4"],
+        "lad_code": ["E01", "E01", "E01", "E01", "E01", "E01", "E01"],
+        "transaction_code": ["T1", "T1", "T1", "T1", "T1", "T2", "T1"],
+        "adjust": [True, True, float("NaN"), True, True, True, True],
+        "year_to_adjust": [2002, 2002, float("NaN"), 2002, 2003, 2002, 2002],
+        "uncon_gdhi": [10, 11, 12, 13, 14, 15, 16]
+    })
+
+    result_df = create_anaomaly_list(df)
+
+    expected_df = pd.DataFrame({
+        "lsoa_code": ["E1", "E3", "E3", "E3", "E4"],
+        "transaction_code": ["T1", "T1", "T1", "T2", "T1"],
+        "year_to_adjust": [2002, 2002, 2003, 2002, 2002],
+    })
+
+    pd.testing.assert_frame_equal(result_df, expected_df, check_dtype=False)
+
+
+def test_calc_adjustment_headroom_val():
+    """Test the calc_adjustment_headroom_val function."""
+    df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2", "E3", "E4", "E5"],
+        "transaction_code": ["T1", "T2", "T1", "T1", "T1"],
+        "year": [2002, 2002, 2004, 2003, 2003],
+        "uncon_gdhi": [10.0, 11.0, 12.0, 13.0, 17.0],
+        "con_gdhi": [5.0, 15.0, 25.0, 20.0, 10.0]
+    })
+
+    df_scaling = pd.DataFrame({
+        "transaction_code": ["T1", "T1", "T1", "T2"],
+        "year": [2002, 2003, 2004, 2002],
+        "uncon_gdhi": [10.0, 20.0, 30.0, 40.0],
+        "con_gdhi": [50.0, 60.0, 70.0, 80.0],
+        "scaling": [2.0, 10.0, 1.0, 0.2]
+    })
+
+    lsoa_code = "E1"
+    transaction_code = "T1"
+    year_to_adjust = 2003
+
+    result_uncon_sum, result_headroom_val = calc_adjustment_headroom_val(
+        df, df_scaling, lsoa_code, transaction_code, year_to_adjust
+    )
+
+    expected_uncon_sum = 30.0
+    expected_headroom_val = 15.0
+
+    assert result_uncon_sum == expected_uncon_sum
+    assert result_headroom_val == expected_headroom_val
