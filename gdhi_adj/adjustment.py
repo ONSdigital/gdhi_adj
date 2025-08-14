@@ -298,6 +298,8 @@ def calc_midpoint_val(
     Returns:
         float: Midpoint value for the specified LSOA code.
     """
+    # if year_to_adjust is the first or last year in the series,
+    # method required for determining what to do with midpoint
     outlier_val = df[
         (df["lsoa_code"] == lsoa_code)
         & (df["transaction_code"] == transaction_code)
@@ -403,7 +405,9 @@ def pivot_wide_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         ],
         columns="year",
         values="con_gdhi",
-    ).reset_index()
+    )
+    df_wide.columns.name = None  # This removes the label from columns
+    df_wide = df_wide.reset_index()
 
     id_cols = ["lsoa_code", "transaction_code"]
 

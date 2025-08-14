@@ -2,13 +2,17 @@ import pandas as pd
 import pytest
 
 from gdhi_adj.adjustment import (
+    apply_adjustment,
     calc_adjustment_headroom_val,
+    calc_adjustment_val,
+    calc_midpoint_val,
     calc_scaling_factors,
     create_anaomaly_list,
     filter_lsoa_data,
     join_analyst_constrained_data,
     join_analyst_unconstrained_data,
     pivot_adjustment_long,
+    pivot_wide_dataframe,
 )
 
 
@@ -336,3 +340,110 @@ def test_calc_adjustment_headroom_val():
 
     assert result_uncon_sum == expected_uncon_sum
     assert result_headroom_val == expected_headroom_val
+
+
+def test_calc_midpoint_val():
+    """Test the calc_midpoint_val function."""
+    df = pd.DataFrame({
+        "lsoa_code": ["E1", "E1", "E1", "E2"],
+        "transaction_code": ["T1", "T1", "T1", "T1"],
+        "year": [2002, 2003, 2004, 2003],
+        "uncon_gdhi": [10.0, 20.0, 26.0, 45.0],
+        "con_gdhi": [5.0, 8.0, 10.0, 15.0]
+    })
+
+    lsoa_code = "E1"
+    transaction_code = "T1"
+    year_to_adjust = 2003
+
+    result_outlier_val, result_midpoint_val = calc_midpoint_val(
+        df, lsoa_code, transaction_code, year_to_adjust
+    )
+
+    expected_outlier_val = 8.0
+    expected_midpoint_val = 7.5
+
+    assert result_outlier_val == expected_outlier_val
+    assert result_midpoint_val == expected_midpoint_val
+
+
+def test_calc_adjustment_val():
+    """Test the calc_adjustment_val function."""
+    headroom_val = 15.0
+    outlier_val = 7.5
+    midpoint_val = -8.0
+
+    result_adjustment_val = calc_adjustment_val(
+        headroom_val, outlier_val, midpoint_val
+    )
+
+    expected_adjustment_val = 7.5
+
+    assert result_adjustment_val == expected_adjustment_val
+
+    headroom_val_high = 30.0
+
+    result_adjustment_val_high_head = calc_adjustment_val(
+        headroom_val_high, outlier_val, midpoint_val
+    )
+
+    expected_adjustment_val_high_head = -15.5
+
+    assert result_adjustment_val_high_head == expected_adjustment_val_high_head
+
+
+def test_apply_adjustment():
+    """Test the apply_adjustment function."""
+    df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2", "E3", "E4"],
+        "transaction_code": ["T1", "T1", "T1", "T1"],
+        "adjust": [True, float("NaN"), float("NaN"), float("NaN")],
+        "year": [2002, 2002, 2002, 2003],
+        "uncon_gdhi": [10.0, 20.0, 30.0, 40.0],
+        "con_gdhi": [5.0, 15.0, 12.0, 20.0]
+    })
+
+    transaction_code = "T1"
+    year_to_adjust = 2002
+    adjustment_val = 7.5
+    uncon_non_out_sum = 30.0
+
+    result_df = apply_adjustment(
+        df, transaction_code, year_to_adjust, adjustment_val, uncon_non_out_sum
+    )
+
+    expected_df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2", "E3", "E4"],
+        "transaction_code": ["T1", "T1", "T1", "T1"],
+        "adjust": [True, float("NaN"), float("NaN"), float("NaN")],
+        "year": [2002, 2002, 2002, 2003],
+        "uncon_gdhi": [10.0, 20.0, 30.0, 40.0],
+        "con_gdhi": [12.5, 20.0, 19.5, 20.0]
+    })
+
+    pd.testing.assert_frame_equal(result_df, expected_df)
+
+
+def test_pivot_wide_dataframe():
+    """Test the pivot_wide_dataframe function."""
+    df = pd.DataFrame({
+        "lsoa_code": ["E1", "E1", "E1", "E2", "E2", "E2"],
+        # Testing lad_code column is dropped during pivot
+        "lad_code": ["E01", "E01", "E01", "E01", "E01", "E01"],
+        "transaction_code": ["T1", "T1", "T1", "T1", "T1", "T1"],
+        "year": [2002, 2003, 2004, 2002, 2003, 2004],
+        "uncon_gdhi": [10.0, 20.0, 30.0, 40.0, 50.0, 60.0],
+        "con_gdhi": [5.0, 15.0, 25.0, 35.0, 45.0, 55.0]
+    })
+
+    result_df = pivot_wide_dataframe(df)
+
+    expected_df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2"],
+        "transaction_code": ["T1", "T1"],
+        "Adjust_Con_2002": [5.0, 35.0],
+        "Adjust_Con_2003": [15.0, 45.0],
+        "Adjust_Con_2004": [25.0, 55.0],
+    })
+
+    pd.testing.assert_frame_equal(result_df, expected_df)
