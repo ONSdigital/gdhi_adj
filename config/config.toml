@@ -1,7 +1,7 @@
 [user_settings]
 local_or_shared = "shared" # "local" or "shared"
-preprocessing = false # Set to true if you want to run preprocessing
-adjustment = true # Set to true if you want to run manual adjustment
+preprocessing = true # Set to true if you want to run preprocessing
+adjustment = false # Set to true if you want to run manual adjustment
 
 [local_settings]
 input_gdhi_file_path = "D:/gdhi_adj_dummy.csv" #Run from D: drive here
@@ -11,9 +11,9 @@ output_file_path = "D:/" #Set output directory here to D:drive
 #To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
 #sharepoint site, go into the subfolder 'GDHI' and open '2025_manual_adjustments'
 #and click the 'sync' button to sync to your local OneDrive.
-input_gdhi_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Worked_Example/Manual_Adjustment_Pre_Processing_test_data_all.csv"
+input_gdhi_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/DAP_Exported/GDHI_Preproc_HMRC_PIR_Unconstrained.csv"
 input_ra_lad_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Worked_Example/Manual_Adjustment_Pre_Processing_test_data_lad.csv"
-output_dir = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Worked_Example/"
+output_dir = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/Output/"
 output_filename = "gdhi_manual_adj_preprocessed_output.csv" #Change name of file here
 output_schema_path = "config/output_preprocess_schema.toml"
 

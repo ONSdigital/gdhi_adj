@@ -1,11 +1,7 @@
 [lad_code]
-old_name = "LAD code"
+old_name = "lad_code"
 Deduced_Data_Type = "str"
 
 [lad_name]
-old_name = "LAD name"
-Deduced_Data_Type = "str"
-
-[transaction_code]
-old_name = "Transaction Code"
+old_name = "lad_name"
 Deduced_Data_Type = "str"

@@ -271,7 +271,6 @@ def pivot_output_long(
             "lsoa_name",
             "lad_code",
             "lad_name",
-            "transaction_code",
             "year",
             "master_z_flag",
             "master_iqr_flag",
@@ -303,7 +302,6 @@ def pivot_wide_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             "lsoa_name",
             "lad_code",
             "lad_name",
-            "transaction_code",
             "master_z_flag",
             "master_iqr_flag",
             "master_flag",
@@ -425,11 +423,11 @@ def run_preprocessing(config: dict) -> None:
     forward_prefix = "frwd"
     raw_prefix = "raw"
 
-    logger.info("Calculating z-scores and IQRs")
+    logger.info("Calculating z-scores")
     df = calc_zscores(df, backward_prefix, "lsoa_code", "backward_pct_change")
     df = calc_zscores(df, forward_prefix, "lsoa_code", "forward_pct_change")
     df = calc_zscores(df, raw_prefix, "lsoa_code", "gdhi_annual")
-
+    logger.info("Calculating IQRs")
     df = calc_iqr(df, backward_prefix, "lsoa_code", "backward_pct_change")
     df = calc_iqr(df, forward_prefix, "lsoa_code", "forward_pct_change")
     df = calc_iqr(df, raw_prefix, "lsoa_code", "gdhi_annual")
@@ -450,7 +448,6 @@ def run_preprocessing(config: dict) -> None:
         "lsoa_name",
         "lad_code",
         "lad_name",
-        "transaction_code",
         "year",
         "gdhi_annual",
         "master_z_flag",

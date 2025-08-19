@@ -14,10 +14,6 @@ Deduced_Data_Type = "str"
 old_name = "LAD name"
 Deduced_Data_Type = "str"
 
-[transaction_code]
-old_name = "Transaction Code"
-Deduced_Data_Type = "str"
-
 [adjust]
 old_name = "Adjust"
 Deduced_Data_Type = "boolean"
