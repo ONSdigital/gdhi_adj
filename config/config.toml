@@ -13,7 +13,7 @@ output_file_path = "D:/" #Set output directory here to D:drive
 #and click the 'sync' button to sync to your local OneDrive.
 input_gdhi_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/DAP_Exported/GDHI_Preproc_HMRC_PIR_Unconstrained.csv"
 input_ra_lad_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/Reg_Accounts/uk_gdhi_by_component_2022.csv"
-transaction_code = "D.1"
+transaction_name = "Compensation of employees"
 output_dir = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/Output/"
 output_filename = "gdhi_manual_adj_preprocessed_output.csv" #Change name of file here
 output_schema_path = "config/output_preprocess_schema.toml"

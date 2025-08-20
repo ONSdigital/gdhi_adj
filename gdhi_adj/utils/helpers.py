@@ -244,8 +244,6 @@ def write_with_schema(
     validate_schema(df, expected_schema)
     logger.info("Schema validation passed successfully")
 
-    # Write DataFrame to CSV
-    logger.info(f"Writing data to {output_dir}")
     # Ensure output directory exists
     if new_filename:
         new_output_path = os.path.join(

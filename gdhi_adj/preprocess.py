@@ -2,6 +2,7 @@
 
 import os
 
+import numpy as np
 import pandas as pd
 from scipy.stats import zscore
 
@@ -78,7 +79,7 @@ def rate_of_change(
 
 
 def calc_zscores(
-    df: pd.DataFrame, score_prefix: str, group_col: str, pct_change_col: str
+    df: pd.DataFrame, score_prefix: str, group_col: str, val_col: str
 ) -> pd.DataFrame:
     """
     Calculates the z-scores for percent changes and raw data in DataFrame.
@@ -87,17 +88,21 @@ def calc_zscores(
         df (pd.DataFrame): The input DataFrame.
         score_prefix (str): Prefix for the zscore column names.
         group_col (str): The column to group by for z-score calculation.
-        pct_change_col (str): The column containing percent change values to
-        calculate zscores.
+        val_col (str): The column values to calculate zscores.
 
     Returns:
         pd.DataFrame: The DataFrame with an additional 'zscore' column.
     """
-    df[score_prefix + "_zscore"] = df.groupby(group_col)[
-        pct_change_col
-    ].transform(lambda x: zscore(x, nan_policy="omit", ddof=1))
+    df[score_prefix + "_zscore"] = df.groupby(group_col)[val_col].transform(
+        lambda x: zscore(x, nan_policy="omit", ddof=1)
+    )
 
-    df["z_" + score_prefix + "_flag"] = df[score_prefix + "_zscore"] > 3.0
+    # If the value column is 1, the data has been rolled back so should not be
+    # flagged, else flag based on zscore
+    df["z_" + score_prefix + "_flag"] = np.where(
+        df[val_col] == 1, False, df[score_prefix + "_zscore"] > 3.0
+    )
+
     return df
 
 
@@ -135,10 +140,14 @@ def calc_iqr(
         3 * df[iqr_prefix + "_iqr"]
     )
 
-    # Flag outliers based on lower and upper bounds
-    df["iqr_" + iqr_prefix + "_flag"] = (
-        df[val_col] < df[iqr_prefix + "_lower_bound"]
-    ) | (df[val_col] > df[iqr_prefix + "_upper_bound"])
+    # If the value column is 1, the data has been rolled back so should not be
+    # flagged, else flag based on zscore
+    df["iqr_" + iqr_prefix + "_flag"] = np.where(
+        df[val_col] == 1,
+        False,
+        (df[val_col] < df[iqr_prefix + "_lower_bound"])
+        | (df[val_col] > df[iqr_prefix + "_upper_bound"]),
+    )
 
     return df
 
@@ -205,7 +214,9 @@ def calc_lad_mean(
 
 
 def constrain_to_reg_acc(
-    df: pd.DataFrame, reg_acc: pd.DataFrame, transaction_code: str
+    df: pd.DataFrame,
+    reg_acc: pd.DataFrame,
+    transaction_name: str,
 ) -> pd.DataFrame:
     """
     Calculate contrained and unconstrained values for each outlier case.
@@ -218,8 +229,13 @@ def constrain_to_reg_acc(
     Returns:
         pd.DataFrame: The constrained DataFrame.
     """
-    reg_acc = reg_acc[reg_acc["transaction_code"] == transaction_code].drop(
-        columns=["transaction_code", "Region", "Region name", "Transaction"]
+    reg_acc = reg_acc[reg_acc["transaction_name"] == transaction_name].drop(
+        columns=[
+            "Region",
+            "Region name",
+            "Transaction code",
+            "transaction_name",
+        ]
     )
     # Ensure that both DataFrames have the same columns for merging
     if not reg_acc.columns.isin(df.columns).all():
@@ -400,8 +416,8 @@ def run_preprocessing(config: dict) -> None:
     input_ra_lad_schema_path = config["pipeline_settings"][
         "input_ra_lad_schema_path"
     ]
-    transaction_code = config["preprocessing_shared_settings"][
-        "transaction_code"
+    transaction_name = config["preprocessing_shared_settings"][
+        "transaction_name"
     ]
 
     output_dir = "C:/Users/" + os.getlogin() + filepath_dict["output_dir"]
@@ -467,7 +483,7 @@ def run_preprocessing(config: dict) -> None:
     logger.info("Calculating LAD mean and constraining to regional accounts")
     df = calc_lad_mean(df)
 
-    df = constrain_to_reg_acc(df, ra_lad, transaction_code)
+    df = constrain_to_reg_acc(df, ra_lad, transaction_name)
 
     logger.info("Pivoting data back to wide format")
     # Pivot outlier df

@@ -2,6 +2,6 @@
 old_name = "LAD code"
 Deduced_Data_Type = "str"
 
-[transaction_code]
-old_name = "Transaction code"
+[transaction_name]
+old_name = "Transaction"
 Deduced_Data_Type = "str"

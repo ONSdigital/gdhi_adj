@@ -253,13 +253,22 @@ def test_constrain_to_reg_acc():
 
     # Define regional and local authority codes
     reg_acc = pd.DataFrame({
-        "lad_code": ["E01", "E02", "E01", "E02"],
-        "year": [2001, 2001, 2002, 2002],
-        "gdhi_annual": [100, 200, 300, 400]
+        "Region": ["NE", "NE", "NE", "NE", "NE"],
+        "lad_code": ["E01", "E02", "E01", "E02", "E02"],
+        "Region name": ["Hart", "Stock", "Hart", "Stock", "Stock"],
+        "Transaction code": ["B.2g", "B.2g", "B.2g", "B.3g", "B.2g"],
+        "transaction_name": ["Operating surplus", "Operating surplus",
+                             "Operating surplus", "Mixed income",
+                             "Operating surplus"],
+        "year": [2001, 2001, 2002, 2002, 2002],
+        "gdhi_annual": [100, 200, 300, 350, 400]
     })
 
+    # Define transaction_name
+    transaction_name = "Operating surplus"
+
     # Constrain to regional and local authority codes
-    result_df = constrain_to_reg_acc(df, reg_acc)
+    result_df = constrain_to_reg_acc(df, reg_acc, transaction_name)
 
     # Expected DataFrame after constraining
     expected_df = pd.DataFrame({
@@ -290,15 +299,22 @@ def test_constrain_to_reg_acc_col_mismatch():
     reg_acc = pd.DataFrame({
         "lad_code": [],
         "year": [],
+        "Region": [],
+        "Region name": [],
+        "Transaction code": [],
+        "transaction_name": [],
         "wrong_col": []
     })
+
+    # Define transaction_name
+    transaction_name = "Operating surplus"
 
     # Ensure error is raised if regional accounts columns aren't present in df
     with pytest.raises(
         expected_exception=ValueError,
         match="DataFrames have different columns"
     ):
-        constrain_to_reg_acc(df, reg_acc)
+        constrain_to_reg_acc(df, reg_acc, transaction_name)
 
 
 def test_pivot_output_long():
