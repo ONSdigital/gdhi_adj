@@ -1,7 +1,7 @@
 """Title for pipeline.py module"""
 
-from gdhi_adj.adjustment import run_adjustment
-from gdhi_adj.preprocess import run_preprocessing
+from gdhi_adj.adjustment.run_adjustment import run_adjustment
+from gdhi_adj.preprocess.run_preprocess import run_preprocessing
 from gdhi_adj.utils.helpers import load_toml_config
 from gdhi_adj.utils.logger import GDHI_adj_logger
 
