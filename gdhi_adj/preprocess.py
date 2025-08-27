@@ -78,6 +78,29 @@ def rate_of_change(
     return df
 
 
+def flag_rollback_years(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Flags years where the GDHI has rolled back from future years.
+    Typically 2010-2014 has 2015 data copied to them as it is missing.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+
+    Returns:
+        pd.DataFrame: DataFrame with an additional 'rollback_flag' column.
+    """
+    # Create a mask for years where the GDHI has rolled back
+    # 2015 is included due to forward percentage change column
+    rollback_mask = (
+        (df["backward_pct_change"] == 1.0) | (df["forward_pct_change"] == 1.0)
+    ) & (df["year"].between(2010, 2014))
+
+    # Create a new column 'rollback_flag' based on the mask
+    df["rollback_flag"] = np.where(rollback_mask, True, False)
+
+    return df
+
+
 def calc_zscores(
     df: pd.DataFrame, score_prefix: str, group_col: str, val_col: str
 ) -> pd.DataFrame:
@@ -93,15 +116,22 @@ def calc_zscores(
     Returns:
         pd.DataFrame: The DataFrame with an additional 'zscore' column.
     """
-    df[score_prefix + "_zscore"] = df.groupby(group_col)[val_col].transform(
-        lambda x: zscore(x, nan_policy="omit", ddof=1)
+    # Mask for when rollback_flag is false
+    mask = ~df["rollback_flag"]
+
+    # Calculate z-scores when rollback_flag is false
+    zscore_series = (
+        df[mask]
+        .groupby(group_col)[val_col]
+        .transform(lambda x: zscore(x, nan_policy="omit", ddof=1))
     )
+    # Assign z-scores back to the original DataFrame
+    df.loc[mask, score_prefix + "_zscore"] = zscore_series
+    # df.loc[~mask, score_prefix + "_zscore"] = 0.0
 
     # If the value column is 1, the data has been rolled back so should not be
     # flagged, else flag based on zscore
-    df["z_" + score_prefix + "_flag"] = np.where(
-        df[val_col] == 1, False, df[score_prefix + "_zscore"] > 3.0
-    )
+    df["z_" + score_prefix + "_flag"] = df[score_prefix + "_zscore"] > 3.0
 
     return df
 
@@ -122,13 +152,25 @@ def calc_iqr(
         pd.DataFrame: The DataFrame with additional columns for IQR and outlier
         bounds.
     """
-    # Calculate quartiles for each LSOA
-    df[iqr_prefix + "_q1"] = df.groupby(group_col)[val_col].transform(
-        lambda x: x.quantile(0.25)
+    # Mask for when rollback_flag is false
+    mask = ~df["rollback_flag"]
+
+    # Calculate quartiles only on unflagged data
+    q1 = (
+        df[mask]
+        .groupby(group_col)[val_col]
+        .transform(lambda x: x.quantile(0.25))
     )
-    df[iqr_prefix + "_q3"] = df.groupby(group_col)[val_col].transform(
-        lambda x: x.quantile(0.75)
+    q3 = (
+        df[mask]
+        .groupby(group_col)[val_col]
+        .transform(lambda x: x.quantile(0.75))
     )
+
+    # Assign quartiles back to the full DataFrame
+    df[iqr_prefix + "_q1"] = q1
+    df[iqr_prefix + "_q3"] = q3
+
     # Calculate IQR for each LSOA
     df[iqr_prefix + "_iqr"] = df[iqr_prefix + "_q3"] - df[iqr_prefix + "_q1"]
 
@@ -142,12 +184,9 @@ def calc_iqr(
 
     # If the value column is 1, the data has been rolled back so should not be
     # flagged, else flag based on zscore
-    df["iqr_" + iqr_prefix + "_flag"] = np.where(
-        df[val_col] == 1,
-        False,
-        (df[val_col] < df[iqr_prefix + "_lower_bound"])
-        | (df[val_col] > df[iqr_prefix + "_upper_bound"]),
-    )
+    df["iqr_" + iqr_prefix + "_flag"] = (
+        df[val_col] < df[iqr_prefix + "_lower_bound"]
+    ) | (df[val_col] > df[iqr_prefix + "_upper_bound"])
 
     return df
 
@@ -440,6 +479,7 @@ def run_preprocessing(config: dict) -> None:
     df = rate_of_change(
         True, df, ["lsoa_code", "year"], "lsoa_code", "gdhi_annual"
     )
+    df = flag_rollback_years(df)
 
     # Assign prefixes
     backward_prefix = "bkwd"

@@ -8,6 +8,7 @@ from gdhi_adj.preprocess import (
     concat_wide_dataframes,
     constrain_to_reg_acc,
     create_master_flag,
+    flag_rollback_years,
     pivot_output_long,
     pivot_wide_dataframe,
     pivot_years_long_dataframe,
@@ -17,14 +18,13 @@ from gdhi_adj.preprocess import (
 
 def test_pivot_years_long_dataframe():
     """Test the pivot_years_long_dataframe function."""
-    # Create a sample DataFrame with years as column names
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E3"],
         "lad_code": ["E01", "E02", "E03"],
         "2003": [10, 20, 30],
         "2004": [11, 22, 33]
     })
-    # Call the function to pivot the DataFrame
+
     result_df = pivot_years_long_dataframe(df, "year", "value_col")
 
     # Expected DataFrame after pivoting, pivoting all columns that don't start
@@ -41,7 +41,6 @@ def test_pivot_years_long_dataframe():
 
 def test_rate_of_change_forward():
     """Test the rate_of_change function for forward rate of change."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2"],
         "year": [2001, 2001, 2002, 2002],
@@ -53,7 +52,6 @@ def test_rate_of_change_forward():
         True, df, ["lsoa_code", "year"], "lsoa_code", "gdhi_annual"
     )
 
-    # Expected DataFrame after forward rate of change
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E1", "E2", "E2"],
         "year": [2001, 2002, 2001, 2002],
@@ -66,7 +64,6 @@ def test_rate_of_change_forward():
 
 def test_rate_of_change_backward():
     """Test the rate_of_change function for backward rate of change."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2"],
         "year": [2001, 2001, 2002, 2002],
@@ -78,7 +75,6 @@ def test_rate_of_change_backward():
         False, df, ["lsoa_code", "year"], "lsoa_code", "gdhi_annual"
     )
 
-    # Expected DataFrame after backward rate of change
     expected_df = pd.DataFrame({
         "lsoa_code": ["E2", "E2", "E1", "E1"],
         "year": [2002, 2001, 2002, 2001],
@@ -89,43 +85,71 @@ def test_rate_of_change_backward():
     pd.testing.assert_frame_equal(result_df, expected_df)
 
 
+def test_flag_rollback_years():
+    """Test the flag_rollback_years function."""
+    df = pd.DataFrame({
+        "lsoa_code": ["E1", "E1", "E1", "E2", "E2", "E2"],
+        "year": [2010, 2014, 2015, 2001, 2012, 2013],
+        "backward_pct_change": [1.0, 0.9, 0.9, 1.0, 0.95, 1.0],
+        "forward_pct_change": [1.0, 1.0, 1.0, 1.0, 1.05, 0.95]
+    })
+
+    result_df = flag_rollback_years(df)
+
+    expected_df = pd.DataFrame({
+        "lsoa_code": ["E1", "E1", "E1", "E2", "E2", "E2"],
+        "year": [2010, 2014, 2015, 2001, 2012, 2013],
+        "backward_pct_change": [1.0, 0.9, 0.9, 1.0, 0.95, 1.0],
+        "forward_pct_change": [1.0, 1.0, 1.0, 1.0, 1.05, 0.95],
+        "rollback_flag": [True, True, False, False, False, True]
+    })
+
+    pd.testing.assert_frame_equal(result_df, expected_df)
+
+
 def test_calc_zscores():
     """Test the calc_zscores function."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2", "E1",
                       "E2", "E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2",
-                      "E1", "E2", "E1", "E2", "E1", "E2"],
+                      "E1", "E2", "E1", "E2", "E1", "E2", "E3"],
         "year": [2002, 2002, 2003, 2003, 2004, 2004, 2005, 2005, 2006, 2006,
                  2007, 2007, 2008, 2008, 2009, 2009, 2010, 2010, 2011, 2011,
-                 2012, 2012, 2013, 2013],
+                 2012, 2012, 2013, 2013, 2013],
         "backward_pct_change": [1.0, 1.5, -1.2, 1.6, 50.0, 2.0, 1.1, -0.2, 1.2,
                                 -1.0, 0.9, -2.0, -0.6, 0.5, 0.8, 1.3, -1.0,
-                                0.9, 1.3, -1.1, -0.7, 0.7, 1.1, -0.3]
+                                0.9, 1.3, -1.1, -0.7, 0.7, 1.1, -0.3, 1.0],
+        "rollback_flag": [False, False, False, False, False, False, False,
+                          False, False, False, False, False, False, False,
+                          False, False, False, False, False, False, False,
+                          False, False, False, True]
     })
 
-    # Calculate z-scores
     result_df = calc_zscores(df, "bkwd", "lsoa_code", "backward_pct_change")
 
-    # Expected DataFrame after calculating z-scores
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2", "E1",
                       "E2", "E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2",
-                      "E1", "E2", "E1", "E2", "E1", "E2"],
+                      "E1", "E2", "E1", "E2", "E1", "E2", "E3"],
         "year": [2002, 2002, 2003, 2003, 2004, 2004, 2005, 2005, 2006, 2006,
                  2007, 2007, 2008, 2008, 2009, 2009, 2010, 2010, 2011, 2011,
-                 2012, 2012, 2013, 2013],
+                 2012, 2012, 2013, 2013, 2013],
         "backward_pct_change": [1.0, 1.5, -1.2, 1.6, 50.0, 2.0, 1.1, -0.2, 1.2,
                                 -1.0, 0.9, -2.0, -0.6, 0.5, 0.8, 1.3, -1.0,
-                                0.9, 1.3, -1.1, -0.7, 0.7, 1.1, -0.3],
+                                0.9, 1.3, -1.1, -0.7, 0.7, 1.1, -0.3, 1.0],
+        "rollback_flag": [False, False, False, False, False, False, False,
+                          False, False, False, False, False, False, False,
+                          False, False, False, False, False, False, False,
+                          False, False, False, True],
         "bkwd_zscore": [-0.243105, 0.941783, -0.396278, 1.021934, 3.168487,
                         1.342541, -0.236142, -0.420796, -0.229180, -1.062010,
                         -0.250067, -1.863527, -0.354504, 0.140265, -0.257030,
                         0.781479, -0.382354, 0.460872, -0.222218, -1.142162,
-                        -0.361466, 0.300569, -0.236142, -0.500948],
+                        -0.361466, 0.300569, -0.236142, -0.500948, None],
         "z_bkwd_flag": [False, False, False, False, True, False, False, False,
                         False, False, False, False, False, False, False, False,
-                        False, False, False, False, False, False, False, False]
+                        False, False, False, False, False, False, False, False,
+                        False]
     })
 
     pd.testing.assert_frame_equal(result_df, expected_df)
@@ -133,35 +157,38 @@ def test_calc_zscores():
 
 def test_calc_iqr():
     """Test the calc_iqr function."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2", "E1",
-                      "E2"],
-        "year": [2001, 2001, 2002, 2002, 2003, 2003, 2004, 2004, 2005, 2005],
+                      "E2", "E3"],
+        "year": [2001, 2001, 2002, 2002, 2003, 2003, 2004, 2004, 2005, 2005,
+                 2005],
         "backward_pct_change": [1.0, 1.1, -1.2, 1.6, 10.0, 2.0, -0.9, -1.5,
-                                -0.6, -2.5]
+                                -0.6, -2.5, 1.0],
+        "rollback_flag": [False, False, False, False, False, False, False,
+                          False, False, False, True]
     })
 
-    # Calculate IQR
     result_df = calc_iqr(df, "bkwd", "lsoa_code", "backward_pct_change")
 
-    # Expected DataFrame after calculating IQR
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2", "E1",
-                      "E2"],
-        "year": [2001, 2001, 2002, 2002, 2003, 2003, 2004, 2004, 2005, 2005],
+                      "E2", "E3"],
+        "year": [2001, 2001, 2002, 2002, 2003, 2003, 2004, 2004, 2005, 2005,
+                 2005],
         "backward_pct_change": [1.0, 1.1, -1.2, 1.6, 10.0, 2.0, -0.9, -1.5,
-                                -0.6, -2.5],
-        "bkwd_q1": [-0.9, -1.5, -0.9, -1.5, -0.9, -1.5, -0.9, -1.5, -0.9, -1.5
-                    ],
-        "bkwd_q3": [1.0, 1.6, 1.0, 1.6, 1.0, 1.6, 1.0, 1.6, 1.0, 1.6],
-        "bkwd_iqr": [1.9, 3.1, 1.9, 3.1, 1.9, 3.1, 1.9, 3.1, 1.9, 3.1],
+                                -0.6, -2.5, 1.0],
+        "rollback_flag": [False, False, False, False, False, False, False,
+                          False, False, False, True],
+        "bkwd_q1": [-0.9, -1.5, -0.9, -1.5, -0.9, -1.5, -0.9, -1.5, -0.9, -1.5,
+                    None],
+        "bkwd_q3": [1.0, 1.6, 1.0, 1.6, 1.0, 1.6, 1.0, 1.6, 1.0, 1.6, None],
+        "bkwd_iqr": [1.9, 3.1, 1.9, 3.1, 1.9, 3.1, 1.9, 3.1, 1.9, 3.1, None],
         "bkwd_lower_bound": [-6.6, -10.8, -6.6, -10.8, -6.6, -10.8, -6.6,
-                             -10.8, -6.6, -10.8],
+                             -10.8, -6.6, -10.8, None],
         "bkwd_upper_bound": [6.7, 10.9, 6.7, 10.9, 6.7, 10.9, 6.7, 10.9, 6.7,
-                             10.9],
+                             10.9, None],
         "iqr_bkwd_flag": [False, False, False, False, True, False, False,
-                          False, False, False]
+                          False, False, False, False]
     })
 
     pd.testing.assert_frame_equal(result_df, expected_df)
@@ -169,7 +196,6 @@ def test_calc_iqr():
 
 def test_create_master_flag():
     """Test the create_master_flag function."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E1", "E2", "E2", "E3", "E3"],
         "year": [2001, 2002, 2001, 2002, 2001, 2002],
@@ -183,10 +209,8 @@ def test_create_master_flag():
         "iqr_raw_flag": [False, False, True, True, True, False],
     })
 
-    # Create master flags
     result_df = create_master_flag(df)
 
-    # Expected DataFrame after creating master flags
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E1", "E2", "E2", "E3", "E3"],
         "year": [2001, 2002, 2001, 2002, 2001, 2002],
@@ -208,7 +232,6 @@ def test_create_master_flag():
 
 def test_calc_lad_mean():
     """Test the calc_lad_mean function."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": [
             "E1", "E1", "E2", "E2", "E3", "E3", "E4", "E4", "E5", "E5"],
@@ -223,10 +246,8 @@ def test_calc_lad_mean():
             True, True, False, False, False, False, False, False, True, True]
     })
 
-    # Calculate mean percentage difference
     result_df = calc_lad_mean(df)
 
-    # Expected DataFrame after calculating mean percentage difference
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E1", "E5", "E5"],
         "lad_code": ["E01", "E01", "E02", "E02"],
@@ -241,7 +262,6 @@ def test_calc_lad_mean():
 
 def test_constrain_to_reg_acc():
     """Test the constrain_to_reg_acc function."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E3", "E1", "E2", "E3"],
         "lad_code": ["E01", "E01", "E02", "E01", "E01", "E02"],
@@ -251,7 +271,6 @@ def test_constrain_to_reg_acc():
         "master_flag": [True, True, False, False, False, True],
     })
 
-    # Define regional and local authority codes
     reg_acc = pd.DataFrame({
         "Region": ["NE", "NE", "NE", "NE", "NE"],
         "lad_code": ["E01", "E02", "E01", "E02", "E02"],
@@ -264,13 +283,10 @@ def test_constrain_to_reg_acc():
         "gdhi_annual": [100, 200, 300, 350, 400]
     })
 
-    # Define transaction_name
     transaction_name = "Operating surplus"
 
-    # Constrain to regional and local authority codes
     result_df = constrain_to_reg_acc(df, reg_acc, transaction_name)
 
-    # Expected DataFrame after constraining
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E3", "E1", "E2", "E3"],
         "lad_code": ["E01", "E01", "E02", "E01", "E01", "E02"],
@@ -287,7 +303,6 @@ def test_constrain_to_reg_acc():
 
 def test_constrain_to_reg_acc_col_mismatch():
     """Test the constrain_to_reg_acc function with column mismatch."""
-    # Create a sample DataFrame with different column names
     df = pd.DataFrame({
         "lsoa_code": [],
         "lad_code": [],
@@ -295,7 +310,7 @@ def test_constrain_to_reg_acc_col_mismatch():
         "gdhi_annual": [],
     })
 
-    # Define regional and local authority codes
+    # Define regional accounts with different column names
     reg_acc = pd.DataFrame({
         "lad_code": [],
         "year": [],
@@ -306,7 +321,6 @@ def test_constrain_to_reg_acc_col_mismatch():
         "wrong_col": []
     })
 
-    # Define transaction_name
     transaction_name = "Operating surplus"
 
     # Ensure error is raised if regional accounts columns aren't present in df
@@ -319,7 +333,6 @@ def test_constrain_to_reg_acc_col_mismatch():
 
 def test_pivot_output_long():
     """Test the pivot_output_long function."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2"],
         "lsoa_name": ["A", "B", "A", "B"],
@@ -333,10 +346,8 @@ def test_pivot_output_long():
         "mean_non_out_gdhi": [100.0, 110.0, 120.0, 130.0],
     })
 
-    # Call the function to pivot the DataFrame
     result_df = pivot_output_long(df, "gdhi_annual", "mean_non_out_gdhi")
 
-    # Expected DataFrame after pivoting
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2"],
         "lsoa_name": ["A", "B", "A", "B", "A", "B", "A", "B"],
@@ -360,7 +371,6 @@ def test_pivot_output_long():
 
 def test_pivot_wide_dataframe():
     """Test the pivot_wide_dataframe function."""
-    # Create a sample DataFrame
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2"],
         "lsoa_name": ["A", "B", "A", "B", "A", "B", "A", "B"],
@@ -379,10 +389,8 @@ def test_pivot_wide_dataframe():
             "CONLSOA_2002", "CONLSOA_2002", "CONLSOA_2003", "CONLSOA_2003"],
     })
 
-    # Call the function to pivot the DataFrame
     result_df = pivot_wide_dataframe(df)
 
-    # Expected DataFrame after pivoting
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2"],
         "lsoa_name": ["A", "B"],
@@ -402,7 +410,6 @@ def test_pivot_wide_dataframe():
 
 def test_concat_wide_dataframes():
     """Test the concat_wide_dataframes function."""
-    # Create two sample DataFrames
     df_outlier = pd.DataFrame({
         "lsoa_code": ["E1", "E2"],
         "2002": [10.0, 11.0],
@@ -417,10 +424,8 @@ def test_concat_wide_dataframes():
         "CONLSOA_2002": [200.0, 210.0]
     })
 
-    # Concatenate the DataFrames
     result_df = concat_wide_dataframes(df_outlier, df_mean)
 
-    # Expected DataFrame after concatenation
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E1", "E2", "E2"],
         "2002": [10.0, 20.0, 11.0, 21.0],
