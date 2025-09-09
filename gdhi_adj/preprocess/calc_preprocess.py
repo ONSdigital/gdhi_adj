@@ -69,19 +69,16 @@ def calc_zscores(
     mask = ~df["rollback_flag"]
 
     # Calculate z-scores when rollback_flag is false
-    zscore_series = (
-        df[mask]
+    df.loc[mask, f"{score_prefix}_zscore"] = (
+        df.loc[mask]
         .groupby(group_col)[val_col]
         .transform(lambda x: zscore(x, nan_policy="omit", ddof=1))
     )
-    # Assign z-scores back to the original DataFrame
-    df.loc[mask, score_prefix + "_zscore"] = zscore_series
-    # df.loc[~mask, score_prefix + "_zscore"] = 0.0
 
     # If the value column is 1, the data has been rolled back so should not be
     # flagged, else flag based on zscore
-    df["z_" + score_prefix + "_flag"] = (
-        df[score_prefix + "_zscore"] > zscore_threshold
+    df[f"z_{score_prefix}_flag"] = (
+        df[f"{score_prefix}_zscore"] > zscore_threshold
     )
 
     return df
@@ -111,37 +108,36 @@ def calc_iqr(
     mask = ~df["rollback_flag"]
 
     # Calculate quartiles only on unflagged data
-    q1 = (
+    quartiles = (
         df[mask]
         .groupby(group_col)[val_col]
-        .transform(lambda x: x.quantile(0.25))
-    )
-    q3 = (
-        df[mask]
-        .groupby(group_col)[val_col]
-        .transform(lambda x: x.quantile(0.75))
-    )
+        .agg(
+            [
+                (f"{iqr_prefix}_q1", lambda x: x.quantile(0.25)),
+                (f"{iqr_prefix}_q3", lambda x: x.quantile(0.75)),
+            ]
+        )
+    ).reset_index()
 
     # Assign quartiles back to the full DataFrame
-    df[iqr_prefix + "_q1"] = q1
-    df[iqr_prefix + "_q3"] = q3
+    df = df.merge(quartiles, on=group_col, how="left")
 
     # Calculate IQR for each LSOA
-    df[iqr_prefix + "_iqr"] = df[iqr_prefix + "_q3"] - df[iqr_prefix + "_q1"]
+    df[f"{iqr_prefix}_iqr"] = df[f"{iqr_prefix}_q3"] - df[f"{iqr_prefix}_q1"]
 
     # Calculate lower and upper bounds for outliers for each LSOA
-    df[iqr_prefix + "_lower_bound"] = df[iqr_prefix + "_q1"] - (
-        iqr_multiplier * df[iqr_prefix + "_iqr"]
+    df[f"{iqr_prefix}_lower_bound"] = df[f"{iqr_prefix}_q1"] - (
+        iqr_multiplier * df[f"{iqr_prefix}_iqr"]
     )
-    df[iqr_prefix + "_upper_bound"] = df[iqr_prefix + "_q3"] + (
-        iqr_multiplier * df[iqr_prefix + "_iqr"]
+    df[f"{iqr_prefix}_upper_bound"] = df[f"{iqr_prefix}_q3"] + (
+        iqr_multiplier * df[f"{iqr_prefix}_iqr"]
     )
 
     # If the value column is 1, the data has been rolled back so should not be
     # flagged, else flag based on zscore
-    df["iqr_" + iqr_prefix + "_flag"] = (
-        df[val_col] < df[iqr_prefix + "_lower_bound"]
-    ) | (df[val_col] > df[iqr_prefix + "_upper_bound"])
+    df[f"iqr_{iqr_prefix}_flag"] = (
+        df[val_col] < df[f"{iqr_prefix}_lower_bound"]
+    ) | (df[val_col] > df[f"{iqr_prefix}_upper_bound"])
 
     return df
 

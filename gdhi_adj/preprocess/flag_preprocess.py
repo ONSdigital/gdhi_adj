@@ -27,6 +27,31 @@ def flag_rollback_years(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def flag_iqr_bounds(series: pd.Series, multiplier: float) -> tuple:
+    """
+    Calculates the interquartile range (IQR) bounds for a given series.
+
+    Args:
+        series (pd.Series): The input series.
+        multiplier (float): The multiplier for the IQR to determine bounds.
+
+    Returns:
+        tuple: A tuple containing the lower and upper bounds.
+    """
+    # Calculate quartiles
+    q1 = series.quantile(0.25)
+    q3 = series.quantile(0.75)
+
+    # Calculate the interquartile range (IQR)
+    iqr = q3 - q1
+
+    # Calculate lower and upper bounds
+    lower_bound = q1 - (multiplier * iqr)
+    upper_bound = q3 + (multiplier * iqr)
+
+    return (series < lower_bound) | (series > upper_bound)
+
+
 def create_master_flag(df: pd.DataFrame) -> pd.DataFrame:
     """
     Creates a master flag based on z score and IQR flag columns.

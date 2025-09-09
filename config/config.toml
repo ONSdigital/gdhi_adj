@@ -3,7 +3,7 @@ local_or_shared = "shared" # "local" or "shared"
 preprocessing = true # Set to true if you want to run preprocessing
 adjustment = false # Set to true if you want to run manual adjustment
 zscore_threshold = 3.0
-iqr_multiplier = 3.0
+iqr_multiplier = 9.0
 transaction_name = "Compensation of employees"
 output_data = true
 
@@ -25,10 +25,12 @@ output_file_path = "D:/" #Set output directory here to D:drive
 #To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
 #sharepoint site, go into the subfolder 'GDHI' and open '2025_manual_adjustments'
 #and click the 'sync' button to sync to your local OneDrive.
-input_gdhi_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/DAP_Exported/GDHI_Preproc_HMRC_PIR_Unconstrained.csv"
-input_ra_lad_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/Reg_Accounts/uk_gdhi_by_component_2022.csv"
+input_dir = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/"
+input_gdhi_file_path = "DAP_Exported/GDHI_Preproc_HMRC_PIR_Unconstrained.csv"
+input_ra_lad_file_path = "Reg_Accounts/uk_gdhi_by_component_2022.csv"
 output_dir = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/Output/"
-output_filename = "gdhi_manual_adj_preprocessed_output.csv" #Change name of file here
+interim_filename = "manual_adj_preprocessing_interim_scores.csv" #Change name of file here
+output_filename = "manual_adj_preprocessed_output.csv" #Change name of file here
 
 [adjustment_shared_settings]
 #To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts

@@ -1,5 +1,7 @@
 """Title for pipeline.py module"""
 
+import time
+
 from gdhi_adj.adjustment.run_adjustment import run_adjustment
 from gdhi_adj.preprocess.run_preprocess import run_preprocessing
 from gdhi_adj.utils.helpers import load_toml_config
@@ -16,6 +18,7 @@ def run_pipeline(config_path):
         config_path (str): Path to the configuration file.
     """
     logger.info("Pipeline started")
+    start_time = time.time()
 
     # Load config
     config = load_toml_config(config_path)
@@ -32,3 +35,7 @@ def run_pipeline(config_path):
             f"An error occurred during the pipeline execution: {e}",
             exc_info=True,
         )
+
+    logger.info(
+        f"Running time: {((time.time() - start_time) / 60):.2f} minutes."
+    )

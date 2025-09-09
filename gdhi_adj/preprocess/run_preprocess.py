@@ -1,6 +1,7 @@
 """Module for pre-processing data in the gdhi_adj project."""
 
 import os
+import re
 
 from gdhi_adj.preprocess.calc_preprocess import (
     calc_iqr,
@@ -8,7 +9,7 @@ from gdhi_adj.preprocess.calc_preprocess import (
     calc_rate_of_change,
     calc_zscores,
 )
-from gdhi_adj.preprocess.flag_preprocess import (
+from gdhi_adj.preprocess.flag_preprocess import (  # flag_iqr_bounds,
     create_master_flag,
     flag_rollback_years,
 )
@@ -59,11 +60,22 @@ def run_preprocessing(config: dict) -> None:
     schema_path = config["pipeline_settings"]["schema_path"]
 
     input_gdhi_file_path = (
-        "C:/Users/" + os.getlogin() + filepath_dict["input_gdhi_file_path"]
+        "C:/Users/"
+        + os.getlogin()
+        + filepath_dict["input_dir"]
+        + filepath_dict["input_gdhi_file_path"]
     )
     input_ra_lad_file_path = (
-        "C:/Users/" + os.getlogin() + filepath_dict["input_ra_lad_file_path"]
+        "C:/Users/"
+        + os.getlogin()
+        + filepath_dict["input_dir"]
+        + filepath_dict["input_ra_lad_file_path"]
     )
+
+    match = re.search(r".*GDHI_Preproc_(.*?)_[^_]+\.csv", input_gdhi_file_path)
+
+    if match:
+        gdhi_suffix = match.group(1) + "_"
 
     input_gdhi_schema_path = (
         schema_path + config["pipeline_settings"]["input_gdhi_schema_name"]
@@ -81,7 +93,10 @@ def run_preprocessing(config: dict) -> None:
         schema_path
         + config["pipeline_settings"]["output_preprocess_schema_path"]
     )
-    new_filename = filepath_dict.get("output_filename", None)
+    interim_filename = gdhi_suffix + filepath_dict.get(
+        "interim_filename", None
+    )
+    new_filename = gdhi_suffix + filepath_dict.get("output_filename", None)
     logger.info("Configuration settings loaded successfully")
 
     logger.info("Reading in data with schemas")
@@ -122,6 +137,25 @@ def run_preprocessing(config: dict) -> None:
     )
 
     logger.info("Calculating IQRs")
+    # Mask for when rollback_flag is false
+    # mask = ~df["rollback_flag"]
+
+    # df["iqr_" + backward_prefix + "_flag"] = (
+    #     df[mask]
+    #     .groupby("lsoa_code")["backward_pct_change"]
+    #     .transform(lambda x: flag_iqr_bounds(x, multiplier=iqr_multiplier))
+    # )
+    # df["iqr_" + forward_prefix + "_flag"] = (
+    #     df[mask]
+    #     .groupby("lsoa_code")["forward_pct_change"]
+    #     .transform(lambda x: flag_iqr_bounds(x, multiplier=iqr_multiplier))
+    # )
+    # df["iqr_" + raw_prefix + "_flag"] = (
+    #     df[mask]
+    #     .groupby("lsoa_code")["gdhi_annual"]
+    #     .transform(lambda x: flag_iqr_bounds(x, multiplier=iqr_multiplier))
+    # )
+
     df = calc_iqr(
         df, backward_prefix, "lsoa_code", "backward_pct_change", iqr_multiplier
     )
@@ -133,9 +167,9 @@ def run_preprocessing(config: dict) -> None:
     df = create_master_flag(df)
 
     logger.info("Saving interim data")
-    logger.info(f"{output_dir}manual_adj_preprocessing_interim_scores.csv")
+    logger.info(f"{output_dir + interim_filename}")
     df.to_csv(
-        output_dir + "manual_adj_preprocessing_interim_scores.csv",
+        output_dir + interim_filename,
         index=False,
     )
     logger.info("Data saved successfully")
