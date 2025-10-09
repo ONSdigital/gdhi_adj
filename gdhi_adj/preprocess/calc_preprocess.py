@@ -1,5 +1,6 @@
 """Module for calculations to preprocess data in the gdhi_adj project."""
 
+import numpy as np
 import pandas as pd
 from scipy.stats import zscore
 
@@ -51,7 +52,8 @@ def calc_zscores(
     score_prefix: str,
     group_col: str,
     val_col: str,
-    zscore_threshold: float,
+    zscore_upper_threshold: float,
+    zscore_lower_threshold: float,
 ) -> pd.DataFrame:
     """
     Calculates the z-scores for percent changes and raw data in DataFrame.
@@ -61,6 +63,8 @@ def calc_zscores(
         score_prefix (str): Prefix for the zscore column names.
         group_col (str): The column to group by for z-score calculation.
         val_col (str): The column values to calculate zscores.
+        zscore_upper_threshold (float): The upper threshold for z-score flag.
+        zscore_lower_threshold (float): The lower threshold for z-score flag.
 
     Returns:
         pd.DataFrame: The DataFrame with an additional 'zscore' column.
@@ -68,6 +72,8 @@ def calc_zscores(
     # Mask for when rollback_flag is false
     mask = ~df["rollback_flag"]
 
+    # If the value column is 1, the data has been rolled back so should not be
+    # flagged, else flag based on zscore
     # Calculate z-scores when rollback_flag is false
     df.loc[mask, f"{score_prefix}_zscore"] = (
         df.loc[mask]
@@ -75,10 +81,18 @@ def calc_zscores(
         .transform(lambda x: zscore(x, nan_policy="omit", ddof=1))
     )
 
-    # If the value column is 1, the data has been rolled back so should not be
-    # flagged, else flag based on zscore
-    df[f"z_{score_prefix}_flag"] = (
-        df[f"{score_prefix}_zscore"] > zscore_threshold
+    # Descriptor whether the zscore exceeds the upper or lower threshold
+    conditions = [
+        df[f"{score_prefix}_zscore"] > zscore_upper_threshold,
+        df[f"{score_prefix}_zscore"] < zscore_lower_threshold,
+    ]
+    descriptors = ["upper", "lower"]
+
+    df[f"z_{score_prefix}_direction"] = np.select(
+        conditions, descriptors, default=None
+    )
+    df[f"z_{score_prefix}_flag"] = np.select(
+        conditions, [True, True], default=False
     )
 
     return df

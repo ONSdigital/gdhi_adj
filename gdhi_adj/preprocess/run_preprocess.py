@@ -85,7 +85,8 @@ def run_preprocessing(config: dict) -> None:
     )
     transaction_name = config["user_settings"]["transaction_name"]
 
-    zscore_threshold = config["user_settings"]["zscore_threshold"]
+    zscore_upper_threshold = config["user_settings"]["zscore_upper_threshold"]
+    zscore_lower_threshold = config["user_settings"]["zscore_lower_threshold"]
     iqr_multiplier = config["user_settings"]["iqr_multiplier"]
 
     output_dir = "C:/Users/" + os.getlogin() + filepath_dict["output_dir"]
@@ -104,15 +105,27 @@ def run_preprocessing(config: dict) -> None:
     ra_lad = read_with_schema(input_ra_lad_file_path, input_ra_lad_schema_path)
 
     logger.info("Pivoting data to long format")
-    df = pivot_years_long_dataframe(df, "year", "gdhi_annual")
-    ra_lad = pivot_years_long_dataframe(ra_lad, "year", "gdhi_annual")
+    df = pivot_years_long_dataframe(
+        df, new_var_col="year", new_val_col="gdhi_annual"
+    )
+    ra_lad = pivot_years_long_dataframe(
+        ra_lad, new_var_col="year", new_val_col="gdhi_annual"
+    )
 
     logger.info("Calculating rate of change")
     df = calc_rate_of_change(
-        False, df, ["lsoa_code", "year"], "lsoa_code", "gdhi_annual"
+        ascending=False,
+        df=df,
+        sort_cols=["lsoa_code", "year"],
+        group_col="lsoa_code",
+        val_col="gdhi_annual",
     )
     df = calc_rate_of_change(
-        True, df, ["lsoa_code", "year"], "lsoa_code", "gdhi_annual"
+        ascending=True,
+        df=df,
+        sort_cols=["lsoa_code", "year"],
+        group_col="lsoa_code",
+        val_col="gdhi_annual",
     )
     df = flag_rollback_years(df)
 
@@ -124,38 +137,22 @@ def run_preprocessing(config: dict) -> None:
     logger.info("Calculating z-scores")
     df = calc_zscores(
         df,
-        backward_prefix,
-        "lsoa_code",
-        "backward_pct_change",
-        zscore_threshold,
+        score_prefix=backward_prefix,
+        group_col="lad_code",
+        val_col="backward_pct_change",
+        zscore_upper_threshold=zscore_upper_threshold,
+        zscore_lower_threshold=zscore_lower_threshold,
     )
     df = calc_zscores(
-        df, forward_prefix, "lsoa_code", "forward_pct_change", zscore_threshold
-    )
-    df = calc_zscores(
-        df, raw_prefix, "lsoa_code", "gdhi_annual", zscore_threshold
+        df,
+        score_prefix=forward_prefix,
+        group_col="lad_code",
+        val_col="forward_pct_change",
+        zscore_upper_threshold=zscore_upper_threshold,
+        zscore_lower_threshold=zscore_lower_threshold,
     )
 
     logger.info("Calculating IQRs")
-    # Mask for when rollback_flag is false
-    # mask = ~df["rollback_flag"]
-
-    # df["iqr_" + backward_prefix + "_flag"] = (
-    #     df[mask]
-    #     .groupby("lsoa_code")["backward_pct_change"]
-    #     .transform(lambda x: flag_iqr_bounds(x, multiplier=iqr_multiplier))
-    # )
-    # df["iqr_" + forward_prefix + "_flag"] = (
-    #     df[mask]
-    #     .groupby("lsoa_code")["forward_pct_change"]
-    #     .transform(lambda x: flag_iqr_bounds(x, multiplier=iqr_multiplier))
-    # )
-    # df["iqr_" + raw_prefix + "_flag"] = (
-    #     df[mask]
-    #     .groupby("lsoa_code")["gdhi_annual"]
-    #     .transform(lambda x: flag_iqr_bounds(x, multiplier=iqr_multiplier))
-    # )
-
     df = calc_iqr(
         df, backward_prefix, "lsoa_code", "backward_pct_change", iqr_multiplier
     )

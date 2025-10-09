@@ -20,6 +20,11 @@ This project runs controlled adjustments of GDHI figures at LSOA levels and reno
       https://gitlab-app-l-01/ASAP/coding-getting-started-guide/-/wikis/python
     - This includes setting up the pip.ini file
     - Setting environment variables for pip and python
+    - Ensure that the paths of the folders for conda and python are stored in your account environmental variables with conda first and python second.
+    - They should be something like:
+      - Conda: C:\ONSapps\My_Miniconda3\Scripts
+      - Python: C:\ONSapps\My_Miniconda3
+
 3. **For users: Install Spyder 6**
 4. **Sync Subnational Statistics sharepoint to OneDrive:**
     - Go to the Subnational Staistics sharepoint, and open the regional accounts
