@@ -6,8 +6,8 @@ from scipy.stats import zscore
 
 
 def calc_rate_of_change(
-    ascending: bool,
     df: pd.DataFrame,
+    ascending: bool,
     sort_cols: list,
     group_col: str,
     val_col: str,
@@ -17,9 +17,9 @@ def calc_rate_of_change(
     DataFrame.
 
     Args:
-        ascending (bool): If True, calculates forward rate of change;
-        otherwise, backward.
         df (pd.DataFrame): The input DataFrame.
+        ascending (bool): If True, calculates forward rate of change;
+            otherwise, backward.
         sort_cols (list): Columns to sort by before calculating rate of change.
         group_col (str): The column to group by for rate of change calculation.
         val_col (str): The column for which the rate of change is calculated.
@@ -52,8 +52,8 @@ def calc_zscores(
     score_prefix: str,
     group_col: str,
     val_col: str,
-    zscore_upper_threshold: float,
-    zscore_lower_threshold: float,
+    zscore_upper_threshold: float = 3.0,
+    zscore_lower_threshold: float = -3.0,
 ) -> pd.DataFrame:
     """
     Calculates the z-scores for percent changes and raw data in DataFrame.
@@ -88,7 +88,7 @@ def calc_zscores(
     ]
     descriptors = ["upper", "lower"]
 
-    df[f"z_{score_prefix}_direction"] = np.select(
+    df[f"{score_prefix}_zscore_threshold"] = np.select(
         conditions, descriptors, default=None
     )
     df[f"z_{score_prefix}_flag"] = np.select(
@@ -103,7 +103,9 @@ def calc_iqr(
     iqr_prefix: str,
     group_col: str,
     val_col: str,
-    iqr_multiplier: float,
+    iqr_lower_quantile: float = 0.25,
+    iqr_upper_quantile: float = 0.75,
+    iqr_multiplier: float = 3.0,
 ) -> pd.DataFrame:
     """
     Calculates the interquartile range (IQR) for each LSOA in the DataFrame.
@@ -113,6 +115,10 @@ def calc_iqr(
         iqr_prefix (str): Prefix for the IQR column names.
         group_col (str): The column to group by for IQR calculation.
         val_col (str): The column containing values to calculate IQR.
+        iqr_lower_quantile (float): The lower quantile for IQR calculation.
+        iqr_upper_quantile (float): The upper quantile for IQR calculation.
+        iqr_multiplier (float): The multiplier for the IQR to determine
+            outlier bounds.
 
     Returns:
         pd.DataFrame: The DataFrame with additional columns for IQR and outlier
@@ -127,8 +133,8 @@ def calc_iqr(
         .groupby(group_col)[val_col]
         .agg(
             [
-                (f"{iqr_prefix}_q1", lambda x: x.quantile(0.25)),
-                (f"{iqr_prefix}_q3", lambda x: x.quantile(0.75)),
+                (f"{iqr_prefix}_q1", lambda x: x.quantile(iqr_lower_quantile)),
+                (f"{iqr_prefix}_q3", lambda x: x.quantile(iqr_upper_quantile)),
             ]
         )
     ).reset_index()
@@ -148,7 +154,7 @@ def calc_iqr(
     )
 
     # If the value column is 1, the data has been rolled back so should not be
-    # flagged, else flag based on zscore
+    # flagged
     df[f"iqr_{iqr_prefix}_flag"] = (
         df[val_col] < df[f"{iqr_prefix}_lower_bound"]
     ) | (df[val_col] > df[f"{iqr_prefix}_upper_bound"])

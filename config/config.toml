@@ -1,9 +1,14 @@
 [user_settings]
 local_or_shared = "shared" # "local" or "shared"
 preprocessing = true # Set to true if you want to run preprocessing
+zscore_calculation = true # Set to true if you want to run z-score calculation
+iqr_calculation = true # Set to true if you want to run IQR calculation
 adjustment = false # Set to true if you want to run manual adjustment
-zscore_threshold = 3.0
-iqr_multiplier = 9.0
+zscore_lower_threshold = -3.0
+zscore_upper_threshold = 3.0
+iqr_lower_quantile = 0.25
+iqr_upper_quantile = 0.75
+iqr_multiplier = 3.0
 transaction_name = "Compensation of employees"
 output_data = true
 

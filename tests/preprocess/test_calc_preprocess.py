@@ -21,7 +21,11 @@ class TestCalcRateOfChange:
 
         # Calculate forward rate of change
         result_df = calc_rate_of_change(
-            True, df, ["lsoa_code", "year"], "lsoa_code", "gdhi_annual"
+            df,
+            ascending=True,
+            sort_cols=["lsoa_code", "year"],
+            group_col="lsoa_code",
+            val_col="gdhi_annual"
         )
 
         expected_df = pd.DataFrame({
@@ -43,7 +47,11 @@ class TestCalcRateOfChange:
 
         # Calculate backward rate of change
         result_df = calc_rate_of_change(
-            False, df, ["lsoa_code", "year"], "lsoa_code", "gdhi_annual"
+            df,
+            ascending=False,
+            sort_cols=["lsoa_code", "year"],
+            group_col="lsoa_code",
+            val_col="gdhi_annual"
         )
 
         expected_df = pd.DataFrame({
@@ -111,10 +119,10 @@ class TestCalcZscores:
                             0.140265, -0.257030, 0.781479, -0.382354, 0.460872,
                             -0.222218, -1.142162, -0.361466, 0.300569,
                             -0.236142, -0.500948, None],
-            "z_bkwd_direction": [None, None, None, None, "upper", None, None,
-                                 None, None, None, None, None, None, None,
-                                 None, None, None, None, None, None, None,
-                                 None, None, None, None],
+            "bkwd_zscore_threshold": [None, None, None, None, "upper", None,
+                                      None, None, None, None, None, None, None,
+                                      None, None, None, None, None, None, None,
+                                      None, None, None, None, None],
             "z_bkwd_flag": [False, False, False, False, True, False, False,
                             False, False, False, False, False, False, False,
                             False, False, False, False, False, False, False,
@@ -174,10 +182,10 @@ class TestCalcZscores:
                             0.325506, -1.863527, 0.222534, 0.140265, 0.318641,
                             0.781479, 0.195075, 0.460872, 0.352965, -1.142162,
                             0.215669, 0.300569, 0.339236, -0.500948, None],
-            "z_bkwd_direction": [None, None, None, None, "lower", None, None,
-                                 None, None, None, None, None, None, None,
-                                 None, None, None, None, None, None, None,
-                                 None, None, None, None],
+            "bkwd_zscore_threshold": [None, None, None, None, "lower", None,
+                                      None, None, None, None, None, None, None,
+                                      None, None, None, None, None, None, None,
+                                      None, None, None, None, None],
             "z_bkwd_flag": [False, False, False, False, True, False, False,
                             False, False, False, False, False, False, False,
                             False, False, False, False, False, False, False,
@@ -200,10 +208,18 @@ def test_calc_iqr():
                           False, False, False, True]
     })
 
+    iqr_lower_quantile = 0.25
+    iqr_upper_quantile = 0.75
     iqr_multiplier = 3.0
 
     result_df = calc_iqr(
-        df, "bkwd", "lsoa_code", "backward_pct_change", iqr_multiplier
+        df,
+        iqr_prefix="bkwd",
+        group_col="lsoa_code",
+        val_col="backward_pct_change",
+        iqr_lower_quantile=iqr_lower_quantile,
+        iqr_upper_quantile=iqr_upper_quantile,
+        iqr_multiplier=iqr_multiplier
     )
 
     expected_df = pd.DataFrame({

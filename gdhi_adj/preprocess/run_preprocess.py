@@ -9,7 +9,7 @@ from gdhi_adj.preprocess.calc_preprocess import (
     calc_rate_of_change,
     calc_zscores,
 )
-from gdhi_adj.preprocess.flag_preprocess import (  # flag_iqr_bounds,
+from gdhi_adj.preprocess.flag_preprocess import (
     create_master_flag,
     flag_rollback_years,
 )
@@ -83,11 +83,15 @@ def run_preprocessing(config: dict) -> None:
     input_ra_lad_schema_path = (
         schema_path + config["pipeline_settings"]["input_ra_lad_schema_name"]
     )
-    transaction_name = config["user_settings"]["transaction_name"]
 
     zscore_upper_threshold = config["user_settings"]["zscore_upper_threshold"]
     zscore_lower_threshold = config["user_settings"]["zscore_lower_threshold"]
+
+    iqr_lower_quantile = config["user_settings"]["iqr_lower_quantile"]
+    iqr_upper_quantile = config["user_settings"]["iqr_upper_quantile"]
     iqr_multiplier = config["user_settings"]["iqr_multiplier"]
+
+    transaction_name = config["user_settings"]["transaction_name"]
 
     output_dir = "C:/Users/" + os.getlogin() + filepath_dict["output_dir"]
     output_schema_path = (
@@ -114,15 +118,15 @@ def run_preprocessing(config: dict) -> None:
 
     logger.info("Calculating rate of change")
     df = calc_rate_of_change(
+        df,
         ascending=False,
-        df=df,
         sort_cols=["lsoa_code", "year"],
         group_col="lsoa_code",
         val_col="gdhi_annual",
     )
     df = calc_rate_of_change(
+        df,
         ascending=True,
-        df=df,
         sort_cols=["lsoa_code", "year"],
         group_col="lsoa_code",
         val_col="gdhi_annual",
@@ -134,32 +138,39 @@ def run_preprocessing(config: dict) -> None:
     forward_prefix = "frwd"
     raw_prefix = "raw"
 
-    logger.info("Calculating z-scores")
-    df = calc_zscores(
-        df,
-        score_prefix=backward_prefix,
-        group_col="lad_code",
-        val_col="backward_pct_change",
-        zscore_upper_threshold=zscore_upper_threshold,
-        zscore_lower_threshold=zscore_lower_threshold,
-    )
-    df = calc_zscores(
-        df,
-        score_prefix=forward_prefix,
-        group_col="lad_code",
-        val_col="forward_pct_change",
-        zscore_upper_threshold=zscore_upper_threshold,
-        zscore_lower_threshold=zscore_lower_threshold,
-    )
+    logger.info("Flagging of outliers")
+    if config["user_settings"]["zscore_calculation"]:
 
-    logger.info("Calculating IQRs")
-    df = calc_iqr(
-        df, backward_prefix, "lsoa_code", "backward_pct_change", iqr_multiplier
-    )
-    df = calc_iqr(
-        df, forward_prefix, "lsoa_code", "forward_pct_change", iqr_multiplier
-    )
-    df = calc_iqr(df, raw_prefix, "lsoa_code", "gdhi_annual", iqr_multiplier)
+        logger.info("Calculating z-scores")
+        df = calc_zscores(
+            df,
+            score_prefix=backward_prefix,
+            group_col="lad_code",
+            val_col="backward_pct_change",
+            zscore_upper_threshold=zscore_upper_threshold,
+            zscore_lower_threshold=zscore_lower_threshold,
+        )
+        df = calc_zscores(
+            df,
+            score_prefix=forward_prefix,
+            group_col="lad_code",
+            val_col="forward_pct_change",
+            zscore_upper_threshold=zscore_upper_threshold,
+            zscore_lower_threshold=zscore_lower_threshold,
+        )
+
+    if config["user_settings"]["iqr_calculation"]:
+
+        logger.info("Calculating IQRs")
+        df = calc_iqr(
+            df,
+            iqr_prefix=raw_prefix,
+            group_col=["lad_code", "year"],
+            val_col="gdhi_annual",
+            iqr_lower_quantile=iqr_lower_quantile,
+            iqr_upper_quantile=iqr_upper_quantile,
+            iqr_multiplier=iqr_multiplier,
+        )
 
     df = create_master_flag(df)
 

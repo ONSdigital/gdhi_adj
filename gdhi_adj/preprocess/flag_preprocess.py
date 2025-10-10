@@ -27,31 +27,6 @@ def flag_rollback_years(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def flag_iqr_bounds(series: pd.Series, multiplier: float) -> tuple:
-    """
-    Calculates the interquartile range (IQR) bounds for a given series.
-
-    Args:
-        series (pd.Series): The input series.
-        multiplier (float): The multiplier for the IQR to determine bounds.
-
-    Returns:
-        tuple: A tuple containing the lower and upper bounds.
-    """
-    # Calculate quartiles
-    q1 = series.quantile(0.25)
-    q3 = series.quantile(0.75)
-
-    # Calculate the interquartile range (IQR)
-    iqr = q3 - q1
-
-    # Calculate lower and upper bounds
-    lower_bound = q1 - (multiplier * iqr)
-    upper_bound = q3 + (multiplier * iqr)
-
-    return (series < lower_bound) | (series > upper_bound)
-
-
 def create_master_flag(df: pd.DataFrame) -> pd.DataFrame:
     """
     Creates a master flag based on z score and IQR flag columns.
@@ -62,19 +37,28 @@ def create_master_flag(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The DataFrame with an additional 'master_flag' columns.
     """
+    # Create list of zscore flag columns (these should be the only columns
+    # prefixed with 'z_')
+    z_score_cols = [col for col in df.columns if col.startswith("z_")]
     # Create a master flag that is True if any of the IQR columns are True
-    z_score_cols = [col for col in df.columns if col[0:2] == "z_"]
     z_count = df.groupby("lsoa_code").agg({col: "sum" for col in z_score_cols})
-    z_count["master_z_flag"] = (z_count[z_score_cols] >= 1).sum(axis=1) >= 2
+    z_count["master_z_flag"] = (z_count[z_score_cols] >= 1).sum(axis=1) >= 1
 
+    # Create list of IQR flag columns (these should be the only columns
+    # prefixed with 'iqr_')
+    iqr_score_cols = [col for col in df.columns if col.startswith("iqr_")]
     # Create a master flag that is True if any of the IQR columns are True
-    iqr_score_cols = [col for col in df.columns if col[0:4] == "iqr_"]
     iqr_count = df.groupby("lsoa_code").agg(
         {col: "sum" for col in iqr_score_cols}
     )
     iqr_count["master_iqr_flag"] = (iqr_count[iqr_score_cols] >= 1).sum(
         axis=1
-    ) >= 2
+    ) >= 1
+
+    # # Create a master flag that is True if any IQR flag is true and if any
+    # # zscore flag is true
+    # df["master_flag"] = (df[iqr_score_cols].any(axis=1)
+    #                      & df[z_score_cols].any(axis=1))
 
     # Join the master flags back to the original DataFrame
     df = df.join(z_count[["master_z_flag"]], on="lsoa_code", how="left")
