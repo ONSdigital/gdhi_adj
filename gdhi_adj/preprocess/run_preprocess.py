@@ -113,10 +113,10 @@ def run_preprocessing(config: dict) -> None:
 
     logger.info("Pivoting data to long format")
     df = pivot_years_long_dataframe(
-        df, new_var_col="year", new_val_col="gdhi_annual"
+        df, new_var_col="year", new_val_col="uncon_gdhi"
     )
     ra_lad = pivot_years_long_dataframe(
-        ra_lad, new_var_col="year", new_val_col="gdhi_annual"
+        ra_lad, new_var_col="year", new_val_col="uncon_gdhi"
     )
 
     logger.info("Calculating rate of change")
@@ -125,14 +125,14 @@ def run_preprocessing(config: dict) -> None:
         ascending=False,
         sort_cols=["lsoa_code", "year"],
         group_col="lsoa_code",
-        val_col="gdhi_annual",
+        val_col="uncon_gdhi",
     )
     df = calc_rate_of_change(
         df,
         ascending=True,
         sort_cols=["lsoa_code", "year"],
         group_col="lsoa_code",
-        val_col="gdhi_annual",
+        val_col="uncon_gdhi",
     )
     df = flag_rollback_years(df)
 
@@ -169,7 +169,7 @@ def run_preprocessing(config: dict) -> None:
             df,
             iqr_prefix=raw_prefix,
             group_col=["lad_code", "year"],
-            val_col="gdhi_annual",
+            val_col="uncon_gdhi",
             iqr_lower_quantile=iqr_lower_quantile,
             iqr_upper_quantile=iqr_upper_quantile,
             iqr_multiplier=iqr_multiplier,
@@ -193,7 +193,7 @@ def run_preprocessing(config: dict) -> None:
         "lad_code",
         "lad_name",
         "year",
-        "gdhi_annual",
+        "uncon_gdhi",
     ] + flag_cols
 
     df = df[cols_to_keep]
@@ -206,11 +206,11 @@ def run_preprocessing(config: dict) -> None:
     logger.info("Pivoting data back to wide format")
     # Pivot outlier df
     df_outlier = df.drop(columns=["mean_non_out_gdhi", "conlsoa_mean"])
-    df_outlier = pivot_output_long(df_outlier, "gdhi_annual", "conlsoa_gdhi")
+    df_outlier = pivot_output_long(df_outlier, "uncon_gdhi", "conlsoa_gdhi")
     df_outlier = pivot_wide_dataframe(df_outlier)
 
     # Pivot mean df
-    df_mean = df.drop(columns=["gdhi_annual", "conlsoa_gdhi"])
+    df_mean = df.drop(columns=["uncon_gdhi", "conlsoa_gdhi"])
     df_mean = pivot_output_long(df_mean, "mean_non_out_gdhi", "conlsoa_mean")
     df_mean = pivot_wide_dataframe(df_mean)
     df_mean["master_flag"] = "MEAN"

@@ -39,11 +39,11 @@ def test_pivot_output_long():
         "lad_name": ["AA", "AA", "AA", "AA"],
         "year": [2002, 2002, 2003, 2003],
         "master_flag": ["TRUE", "TRUE", "TRUE", "TRUE"],
-        "gdhi_annual": [10.0, 11.0, 12.0, 13.0],
+        "uncon_gdhi": [10.0, 11.0, 12.0, 13.0],
         "mean_non_out_gdhi": [100.0, 110.0, 120.0, 130.0],
     })
 
-    result_df = pivot_output_long(df, "gdhi_annual", "mean_non_out_gdhi")
+    result_df = pivot_output_long(df, "uncon_gdhi", "mean_non_out_gdhi")
 
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2"],
@@ -53,11 +53,11 @@ def test_pivot_output_long():
         "year": [2002, 2002, 2003, 2003, 2002, 2002, 2003, 2003],
         "master_flag": [
             "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE"],
-        "metric": ["annual", "annual", "annual", "annual",
+        "metric": ["uncon", "uncon", "uncon", "uncon",
                    "CONLSOA", "CONLSOA", "CONLSOA", "CONLSOA"],
         "value": [10.0, 11.0, 12.0, 13.0, 100.0, 110.0, 120.0, 130.0],
         "metric_date": [
-            "annual_2002", "annual_2002", "annual_2003", "annual_2003",
+            "uncon_2002", "uncon_2002", "uncon_2003", "uncon_2003",
             "CONLSOA_2002", "CONLSOA_2002", "CONLSOA_2003", "CONLSOA_2003"],
     })
 
@@ -74,11 +74,11 @@ def test_pivot_wide_dataframe():
         "year": [2002, 2002, 2003, 2003, 2002, 2002, 2003, 2003],
         "master_flag": [
             "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE"],
-        "metric": ["annual", "annual", "annual", "annual",
+        "metric": ["uncon", "uncon", "uncon", "uncon",
                    "CONLSOA", "CONLSOA", "CONLSOA", "CONLSOA"],
         "value": [10.0, 11.0, 12.0, 13.0, 100.0, 110.0, 120.0, 130.0],
         "metric_date": [
-            "annual_2002", "annual_2002", "annual_2003", "annual_2003",
+            "uncon_2002", "uncon_2002", "uncon_2003", "uncon_2003",
             "CONLSOA_2002", "CONLSOA_2002", "CONLSOA_2003", "CONLSOA_2003"],
     })
 

@@ -13,7 +13,7 @@ def test_constrain_to_reg_acc():
         "lsoa_code": ["E1", "E2", "E3", "E1", "E2", "E3"],
         "lad_code": ["E01", "E01", "E02", "E01", "E01", "E02"],
         "year": [2001, 2001, 2001, 2002, 2002, 2002],
-        "gdhi_annual": [10, 20, 30, 45, 50, 70],
+        "uncon_gdhi": [10, 20, 30, 45, 50, 70],
         "mean_non_out_gdhi": [15, 15, 25, 45, 45, 50],
         "master_flag": [True, True, False, False, False, True],
     })
@@ -27,7 +27,7 @@ def test_constrain_to_reg_acc():
                              "Operating surplus", "Mixed income",
                              "Operating surplus"],
         "year": [2001, 2001, 2002, 2002, 2002],
-        "gdhi_annual": [100, 200, 300, 350, 400]
+        "uncon_gdhi": [100, 200, 300, 350, 400]
     })
 
     transaction_name = "Operating surplus"
@@ -38,7 +38,7 @@ def test_constrain_to_reg_acc():
         "lsoa_code": ["E1", "E2", "E3", "E1", "E2", "E3"],
         "lad_code": ["E01", "E01", "E02", "E01", "E01", "E02"],
         "year": [2001, 2001, 2001, 2002, 2002, 2002],
-        "gdhi_annual": [10, 20, 30, 45, 50, 70],
+        "uncon_gdhi": [10, 20, 30, 45, 50, 70],
         "mean_non_out_gdhi": [15, 15, 25, 45, 45, 50],
         "master_flag": ["TRUE", "TRUE", "MEAN", "MEAN", "MEAN", "TRUE"],
         "conlsoa_gdhi": [40.0, 57.143, 109.091, 150.0, 157.895, 233.333],
@@ -54,7 +54,7 @@ def test_constrain_to_reg_acc_col_mismatch():
         "lsoa_code": [],
         "lad_code": [],
         "year": [],
-        "gdhi_annual": [],
+        "uncon_gdhi": [],
     })
 
     # Define regional accounts with different column names

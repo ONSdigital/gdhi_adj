@@ -31,7 +31,7 @@ def constrain_to_reg_acc(
     if not reg_acc.columns.isin(df.columns).all():
         raise ValueError("DataFrames have different columns for joining.")
 
-    reg_acc.rename(columns={"gdhi_annual": "conlad_gdhi"}, inplace=True)
+    reg_acc.rename(columns={"uncon_gdhi": "conlad_gdhi"}, inplace=True)
 
     df = df.merge(
         reg_acc[["lad_code", "year", "conlad_gdhi"]],
@@ -39,11 +39,11 @@ def constrain_to_reg_acc(
         how="left",
     )
 
-    df["unconlad"] = df["gdhi_annual"] + df["mean_non_out_gdhi"]
+    df["unconlad"] = df["uncon_gdhi"] + df["mean_non_out_gdhi"]
 
     df["rate"] = df["conlad_gdhi"] / df["unconlad"]
 
-    df["conlsoa_gdhi"] = df["gdhi_annual"] * df["rate"]
+    df["conlsoa_gdhi"] = df["uncon_gdhi"] * df["rate"]
     df["conlsoa_mean"] = df["mean_non_out_gdhi"] * df["rate"]
 
     df["master_flag"] = df["master_flag"].replace(

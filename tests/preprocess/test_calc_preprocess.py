@@ -16,7 +16,7 @@ class TestCalcRateOfChange:
         df = pd.DataFrame({
             "lsoa_code": ["E1", "E2", "E1", "E2"],
             "year": [2001, 2001, 2002, 2002],
-            "gdhi_annual": [100, 200, 110, 240]
+            "uncon_gdhi": [100, 200, 110, 240]
         })
 
         # Calculate forward rate of change
@@ -25,13 +25,13 @@ class TestCalcRateOfChange:
             ascending=True,
             sort_cols=["lsoa_code", "year"],
             group_col="lsoa_code",
-            val_col="gdhi_annual"
+            val_col="uncon_gdhi"
         )
 
         expected_df = pd.DataFrame({
             "lsoa_code": ["E1", "E1", "E2", "E2"],
             "year": [2001, 2002, 2001, 2002],
-            "gdhi_annual": [100, 110, 200, 240],
+            "uncon_gdhi": [100, 110, 200, 240],
             "forward_pct_change": [None, 1.1, None, 1.2]
         })
 
@@ -42,7 +42,7 @@ class TestCalcRateOfChange:
         df = pd.DataFrame({
             "lsoa_code": ["E1", "E2", "E1", "E2"],
             "year": [2001, 2001, 2002, 2002],
-            "gdhi_annual": [100, 200, 110, 240]
+            "uncon_gdhi": [100, 200, 110, 240]
         })
 
         # Calculate backward rate of change
@@ -51,13 +51,13 @@ class TestCalcRateOfChange:
             ascending=False,
             sort_cols=["lsoa_code", "year"],
             group_col="lsoa_code",
-            val_col="gdhi_annual"
+            val_col="uncon_gdhi"
         )
 
         expected_df = pd.DataFrame({
             "lsoa_code": ["E2", "E2", "E1", "E1"],
             "year": [2002, 2001, 2002, 2001],
-            "gdhi_annual": [240, 200, 110, 100],
+            "uncon_gdhi": [240, 200, 110, 100],
             "backward_pct_change": [None, 0.83333, None, 0.90909]
         })
 
@@ -258,7 +258,7 @@ def test_calc_lad_mean():
             "E01", "E01", "E01", "E01", "E01", "E01", "E02", "E02", "E02",
             "E02"],
         "year": [2001, 2002, 2001, 2002, 2001, 2002, 2001, 2002, 2001, 2002],
-        "gdhi_annual": [
+        "uncon_gdhi": [
             100.0, 110.0, 200.0, 220.0, 300.0, 330.0, 400.0, 440.0, 500.0,
             550.0],
         "master_flag": [
@@ -271,7 +271,7 @@ def test_calc_lad_mean():
         "lsoa_code": ["E1", "E1", "E5", "E5"],
         "lad_code": ["E01", "E01", "E02", "E02"],
         "year": [2001, 2002, 2001, 2002],
-        "gdhi_annual": [100.0, 110.0, 500.0, 550.0],
+        "uncon_gdhi": [100.0, 110.0, 500.0, 550.0],
         "master_flag": [True, True, True, True],
         "mean_non_out_gdhi": [250.0, 275.0, 400.0, 440.0]
     })
