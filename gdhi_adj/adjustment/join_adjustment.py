@@ -4,7 +4,8 @@ import pandas as pd
 
 
 def join_analyst_constrained_data(
-    df_constrained: pd.DataFrame, df_analyst: pd.DataFrame
+    df_constrained: pd.DataFrame,
+    df_analyst: pd.DataFrame,
 ) -> pd.DataFrame:
     """
     Join analyst data to constrained data based on LSOA code and LAD code.
@@ -25,7 +26,9 @@ def join_analyst_constrained_data(
     # Obtain list of columns to rename
     exclude_cols = [
         "lsoa_code",
+        "lsoa_name",
         "lad_code",
+        "lad_name",
         "adjust",
         "year",
     ]
@@ -65,7 +68,7 @@ def join_analyst_unconstrained_data(
     """
     df = df_unconstrained.merge(
         df_analyst,
-        on=["lsoa_code", "lad_code"],
+        on=["lsoa_code", "lsoa_name", "lad_code", "lad_name"],
         how="left",
     )
 

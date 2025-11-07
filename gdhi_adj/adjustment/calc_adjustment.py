@@ -2,155 +2,158 @@
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_list_like
 
 
-def calc_scaling_factors(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Calculate scaling factors for the adjustment.
-
-    Args:
-        df (pd.DataFrame): DataFrame with unconstrained and constrained data.
-
-    Returns:
-        pd.DataFrame: DataFrame with scaling factors added.
-    """
-    df_uncon = df[["year", "uncon_gdhi"]].groupby("year", as_index=False).sum()
-    df_con = df[["year", "con_gdhi"]].groupby("year", as_index=False).sum()
-
-    df_scaling = df_uncon.merge(df_con, on=["year"], how="left")
-
-    df_scaling["scaling"] = np.where(
-        df_scaling["uncon_gdhi"] != 0,
-        df_scaling["con_gdhi"] / df_scaling["uncon_gdhi"],
-        0,
-    )
-
-    return df_scaling
-
-
-def calc_adjustment_headroom_val(
-    df: pd.DataFrame,
-    df_scaling: pd.DataFrame,
-    lsoa_code: str,
-    year_to_adjust: int,
-) -> pd.DataFrame:
-    """
-    Calculate the adjustment headroom available to smooth timeseries.
-
-    Args:
-        df (pd.DataFrame): DataFrame containing constrained and unconstrained
-        data.
-        df_scaling (pd.DataFrame): DataFrame containing scaling factors.
-        lsoa_code (str): LSOA code for the adjustment.
-        year_to_adjust (int): Year for the adjustment.
-
-    Returns:
-        uncon_non_out_sum (float): The sum of non outlier unconstrained GDHI.
-        headroom_val (float): The calculated headroom for adjustment.
-    """
-    mean_scaling = df_scaling[df_scaling["year"] != year_to_adjust][
-        "scaling"
-    ].mean()
-
-    uncon_non_out_sum = df[
-        (df["lsoa_code"] != lsoa_code) & (df["year"] == year_to_adjust)
-    ]["uncon_gdhi"].sum()
-
-    con_out_val = df_scaling[df_scaling["year"] == year_to_adjust][
-        "con_gdhi"
-    ].iloc[0]
-
-    headroom_val = con_out_val - (uncon_non_out_sum * mean_scaling)
-
-    return uncon_non_out_sum, headroom_val
-
-
-def calc_midpoint_val(
-    df: pd.DataFrame,
-    lsoa_code: str,
-    year_to_adjust: int,
-) -> tuple[float, float]:
+def calc_midpoint_val(df: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate the midpoint value for a given LSOA code.
 
     Args:
         df (pd.DataFrame): DataFrame containing data to calculate midpoint.
-        lsoa_code (str): LSOA code for the adjustment.
-        year_to_adjust (int): Year for the adjustment.
 
     Returns:
-        tuple[float, float]: The isolated outlier value and calculated midpoint
-        value for the specified LSOA code.
+        pd.DataFrame: DataFrame containing outlier midpoints.
     """
-    # if year_to_adjust is the first or last year in the series,
-    # method required for determining what to do with midpoint
-    outlier_val = df[
-        (df["lsoa_code"] == lsoa_code) & (df["year"] == year_to_adjust)
-    ]["con_gdhi"].iloc[0]
 
-    prev_year_val = df[
-        (df["lsoa_code"] == lsoa_code) & (df["year"] == (year_to_adjust - 1))
-    ]["con_gdhi"].iloc[0]
+    # ensure year_to_adjust is list-like and normalize missing
+    def ensure_list(x):
+        # handle list-like first — avoids calling pd.isna on arrays/Series
+        if is_list_like(x) and not isinstance(x, (str, bytes)):
+            return list(x)
+        elif pd.isna(x):
+            return []
+        elif isinstance(x, (list, tuple, set)):
+            return list(x)
+        else:
+            return [x]
 
-    next_year_val = df[
-        (df["lsoa_code"] == lsoa_code) & (df["year"] == (year_to_adjust + 1))
-    ]["con_gdhi"].iloc[0]
+    df["year_to_adjust"] = df["year_to_adjust"].apply(ensure_list)
 
-    midpoint_val = (prev_year_val + next_year_val) / 2
+    mask = df.apply(lambda r: (r["year"] in r["year_to_adjust"]), axis=1)
 
-    return outlier_val, midpoint_val
+    midpoint_df = df.loc[mask].copy()
+
+    # prepare lookup table of values by (lsoa_code, year)
+    lookup = df[["lsoa_code", "year", "con_gdhi"]].copy()
+
+    # join previous year value
+    midpoint_df["prev_year"] = midpoint_df["year"] - 1
+    midpoint_df = midpoint_df.merge(
+        lookup.rename(
+            columns={"year": "prev_year", "con_gdhi": "prev_con_gdhi"}
+        ),
+        on=["lsoa_code", "prev_year"],
+        how="left",
+    )
+
+    # join next year value
+    midpoint_df["next_year"] = midpoint_df["year"] + 1
+    midpoint_df = midpoint_df.merge(
+        lookup.rename(
+            columns={"year": "next_year", "con_gdhi": "next_con_gdhi"}
+        ),
+        on=["lsoa_code", "next_year"],
+        how="left",
+    )
+
+    # midpoint: average of prev and next (NaN if either missing)
+    midpoint_df["midpoint"] = midpoint_df[
+        ["prev_con_gdhi", "next_con_gdhi"]
+    ].mean(axis=1)
+
+    return midpoint_df
 
 
-def calc_adjustment_val(
-    headroom_val: float, outlier_val: float, midpoint_val: float
-) -> float:
-    """
-    Calculate the adjustment value based on the midpoint and scaled difference.
-
-    Args:
-        headroom_val (float): Scaled difference value calculated from the data.
-        outlier_val (float): Outlier value to be adjusted.
-        midpoint_val (float): Midpoint value to peak/trough.
-
-    Returns:
-        adjustment_val (float): The adjustment value to be applied.
-    """
-    if abs((headroom_val - outlier_val) <= abs(midpoint_val)):
-        adjustment_val = headroom_val - outlier_val
-    else:
-        adjustment_val = midpoint_val - outlier_val
-
-    return adjustment_val
-
-
-def apply_adjustment(
+def calc_midpoint_adjustment(
     df: pd.DataFrame,
-    year_to_adjust: int,
-    adjustment_val: float,
-    uncon_non_out_sum: float,
+    midpoint_df: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Apply the adjustment values to the LSOAs for the anomaly year.
+    Calculate the adjustment required for imputing constrained values with
+    their respective midpoints.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing outlier midpoints.
+        midpoint_df (pd.DataFrame): DataFrame containing outlier midpoints.
+
+    Returns:
+        adjustment_df (pd.DataFrame): DataFrame containing outlier adjustment
+        values.
+    """
+    adjustment_df = midpoint_df[
+        ["lsoa_code", "year", "con_gdhi", "midpoint"]
+    ].copy()
+
+    adjustment_df["midpoint_diff"] = (
+        adjustment_df["con_gdhi"] - adjustment_df["midpoint"]
+    )
+
+    adjustment_df = df.merge(
+        adjustment_df[["lsoa_code", "year", "midpoint", "midpoint_diff"]],
+        on=["lsoa_code", "year"],
+        how="left",
+    )
+    adjustment_df["adjustment_val"] = adjustment_df.groupby(
+        ["lad_code", "year"]
+    )["midpoint_diff"].transform("sum")
+
+    return adjustment_df
+
+
+def apportion_adjustment(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Apportion the adjustment values to all years for each LSOA.
 
     Args:
         df (pd.DataFrame): DataFrame containing data to adjust.
-        year_to_adjust (int): Year for the adjustment.
-        adjustment_val (float): Adjustment value to be applied.
-        uncon_non_out_sum (float): Sum of non-outlier unconstrained GDHI.
 
     Returns:
-        pd.DataFrame: DataFrame with adjustment values calculated.
+        pd.DataFrame: DataFrame with outlier values imputed and adjustment
+        values apportioned accross all years within LSOA.
     """
-    condition_outlier = (df["adjust"].astype("boolean").fillna(False)) & (
-        df["year"] == year_to_adjust
-    )
-    df.loc[condition_outlier, "con_gdhi"] += adjustment_val
+    adjusted_df = df.copy()
 
-    condition_non_outlier = (~df["adjust"].astype("boolean").fillna(False)) & (
-        df["year"] == year_to_adjust
-    )
-    df.loc[condition_non_outlier, "con_gdhi"] = df["con_gdhi"] + (
-        abs(adjustment_val) * (df["uncon_gdhi"] / uncon_non_out_sum)
+    adjusted_df["lsoa_count"] = adjusted_df.groupby(["lad_code", "year"])[
+        "lsoa_code"
+    ].transform("count")
+
+    adjusted_df["adjusted_con_gdhi"] = np.where(
+        adjusted_df["midpoint"].notna(),
+        adjusted_df["midpoint"],
+        adjusted_df["con_gdhi"],
     )
 
-    return df
+    adjusted_df["adjusted_con_gdhi"] += np.where(
+        adjusted_df["adjustment_val"].notna(),
+        adjusted_df["adjustment_val"] / adjusted_df["lsoa_count"],
+        0,
+    )
+
+    # Adjustment check: sums by (lad_code, year) should match pre- and post-
+    # adjustment
+    adjusted_df_check = adjusted_df.copy()
+    adjusted_df_check["unadjusted_sum"] = adjusted_df.groupby(
+        ["lad_code", "year"]
+    )["con_gdhi"].transform("sum")
+
+    adjusted_df_check["adjusted_sum"] = adjusted_df_check.groupby(
+        ["lad_code", "year"]
+    )["adjusted_con_gdhi"].transform("sum")
+
+    adjusted_df_check["adjustment_check"] = abs(
+        adjusted_df_check["unadjusted_sum"] - adjusted_df_check["adjusted_sum"]
+    )
+
+    adjusted_df_check = adjusted_df_check[
+        adjusted_df_check["adjustment_check"] > 0.000001
+    ]
+
+    if not adjusted_df_check.empty:
+        raise ValueError(
+            "Adjustment check failed: LAD sums do not match after adjustment."
+        )
+
+    return adjusted_df.sort_values(by=["lad_code", "year"]).reset_index(
+        drop=True
+    )

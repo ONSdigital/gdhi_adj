@@ -89,14 +89,18 @@ def test_join_analyst_unconstrained_data():
     """Test the join_analyst_unconstrained_data function."""
     df_unconstrained = pd.DataFrame({
         "lsoa_code": ["E1", "E2"],
+        "lsoa_name": ["AA", "BB"],
         "lad_code": ["E01", "E01"],
+        "lad_name": ["AAA", "AAA"],
         "2002": [10.0, 11.0],
         "2003": [20.0, 21.0]
     })
 
     df_analyst = pd.DataFrame({
         "lsoa_code": ["E1", "E2"],
+        "lsoa_name": ["AA", "BB"],
         "lad_code": ["E01", "E01"],
+        "lad_name": ["AAA", "AAA"],
         "adjust": [True, float("NaN")],
         "year": [2002, float("NaN")],
         "CON_2002": [10.0, 11.0],
@@ -107,7 +111,9 @@ def test_join_analyst_unconstrained_data():
 
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2"],
+        "lsoa_name": ["AA", "BB"],
         "lad_code": ["E01", "E01"],
+        "lad_name": ["AAA", "AAA"],
         "2002": [10.0, 11.0],
         "2003": [20.0, 21.0],
         "adjust": [True, False],
@@ -124,14 +130,18 @@ def test_join_analyst_unconstrained_data_adjust_failed_merge():
     fails to join."""
     df_constrained = pd.DataFrame({
         "lsoa_code": ["E1", "E2"],
+        "lsoa_name": ["AA", "BB"],
         "lad_code": ["E01", "E01"],
+        "lad_name": ["AAA", "AAA"],
         "2002": [10.0, 11.0],
         "2003": [20.0, 21.0]
     })
 
     df_analyst = pd.DataFrame({
         "lsoa_code": ["E1", "E2"],
+        "lsoa_name": ["AA", "BB"],
         "lad_code": ["E02", "E01"],  # Different lad_code
+        "lad_name": ["BBB", "AAA"],
         "adjust": [True, float("NaN")],
         "year": [2002, float("NaN")],
         "CON_2002": [10.0, 11.0],
@@ -150,14 +160,18 @@ def test_join_analyst_unconstrained_data_row_increase():
     analyst data increases the number of rows."""
     df_constrained = pd.DataFrame({
         "lsoa_code": ["E1", "E2"],
+        "lsoa_name": ["AA", "BB"],
         "lad_code": ["E01", "E01"],
+        "lad_name": ["AAA", "AAA"],
         "2002": [10.0, 11.0],
         "2003": [20.0, 21.0]
     })
 
     df_analyst = pd.DataFrame({
         "lsoa_code": ["E1", "E1"],  # Duplicate entries for E1
+        "lsoa_name": ["AA", "AA"],
         "lad_code": ["E01", "E01"],
+        "lad_name": ["AAA", "AAA"],
         "adjust": [True, float("NaN")],
         "year": [2002, float("NaN")],
         "CON_2002": [10.0, 11.0],

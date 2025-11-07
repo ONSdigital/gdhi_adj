@@ -192,7 +192,7 @@ def calc_lad_mean(
 
     # Aggregate GDHI values for non-outlier LSOAs by LADs
     non_outlier_df = non_outlier_df.groupby(["lad_code", "year"]).agg(
-        mean_non_out_gdhi=("gdhi_annual", "mean")
+        mean_non_out_gdhi=("uncon_gdhi", "mean")
     )
 
     df = df.join(non_outlier_df, on=["lad_code", "year"], how="left")

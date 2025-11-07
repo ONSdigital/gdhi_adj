@@ -1,8 +1,10 @@
 """Module for pre-processing data in the gdhi_adj project."""
 
 import os
-import re
 
+import pandas as pd
+
+from gdhi_adj.adjustment.filter_adjustment import filter_year
 from gdhi_adj.preprocess.calc_preprocess import (
     calc_iqr,
     calc_lad_mean,
@@ -37,13 +39,14 @@ def run_preprocessing(config: dict) -> None:
     1. Load the configuration settings.
     2. Load the input data.
     3. Pivot the DataFrame to long format.
-    4. Calculate backward and forward rate of change.
-    5. Calculate z-scores and IQRs.
+    4. Calculate percentage rate of change and flag rollback years.
+    5. Calculate z-scores and IQRs if desired as per config.
     6. Create master flags.
-    7. Calculate LAD mean GDHI.
-    8. Constrain outliers to regional accounts.
-    9. Pivot the DataFrame back to wide format.
-    10. Save the processed data.
+    7. Save interim data with all calculated values.
+    8. Calculate LAD mean GDHI.
+    9. Constrain outliers to regional accounts.
+    10. Pivot the DataFrame back to wide format.
+    11. Save the preprocessed data ready for PowerBI analysis.
 
     Args:
         config (dict): Configuration dictionary containing user settings and
@@ -59,11 +62,11 @@ def run_preprocessing(config: dict) -> None:
     filepath_dict = config[f"preprocessing_{local_or_shared}_settings"]
     schema_path = config["pipeline_settings"]["schema_path"]
 
-    input_gdhi_file_path = (
+    input_unconstrained_file_path = (
         "C:/Users/"
         + os.getlogin()
         + filepath_dict["input_dir"]
-        + filepath_dict["input_gdhi_file_path"]
+        + filepath_dict["input_unconstrained_file_path"]
     )
     input_ra_lad_file_path = (
         "C:/Users/"
@@ -72,10 +75,13 @@ def run_preprocessing(config: dict) -> None:
         + filepath_dict["input_ra_lad_file_path"]
     )
 
-    match = re.search(r".*GDHI_Preproc_(.*?)_[^_]+\.csv", input_gdhi_file_path)
+    # match = re.search(
+    #     r".GDHI_Disclosure_(.*?)_[^_]+\.csv", input_unconstrained_file_path
+    # )
 
-    if match:
-        gdhi_suffix = match.group(1) + "_"
+    # if match:
+    #     gdhi_suffix = match.group(1) + "_"
+    gdhi_suffix = config["user_settings"]["output_data_prefix"] + "_"
 
     input_gdhi_schema_path = (
         schema_path + config["pipeline_settings"]["input_gdhi_schema_name"]
@@ -83,6 +89,9 @@ def run_preprocessing(config: dict) -> None:
     input_ra_lad_schema_path = (
         schema_path + config["pipeline_settings"]["input_ra_lad_schema_name"]
     )
+
+    start_year = config["user_settings"]["start_year"]
+    end_year = config["user_settings"]["end_year"]
 
     zscore_calculation = config["user_settings"]["zscore_calculation"]
     iqr_calculation = config["user_settings"]["iqr_calculation"]
@@ -108,16 +117,21 @@ def run_preprocessing(config: dict) -> None:
     logger.info("Configuration settings loaded successfully")
 
     logger.info("Reading in data with schemas")
-    df = read_with_schema(input_gdhi_file_path, input_gdhi_schema_path)
+    df = read_with_schema(
+        input_unconstrained_file_path, input_gdhi_schema_path
+    )
     ra_lad = read_with_schema(input_ra_lad_file_path, input_ra_lad_schema_path)
 
     logger.info("Pivoting data to long format")
     df = pivot_years_long_dataframe(
-        df, new_var_col="year", new_val_col="gdhi_annual"
+        df, new_var_col="year", new_val_col="uncon_gdhi"
     )
     ra_lad = pivot_years_long_dataframe(
-        ra_lad, new_var_col="year", new_val_col="gdhi_annual"
+        ra_lad, new_var_col="year", new_val_col="uncon_gdhi"
     )
+
+    logger.info("Filtering data for specified years")
+    df = filter_year(df, start_year, end_year)
 
     logger.info("Calculating rate of change")
     df = calc_rate_of_change(
@@ -125,14 +139,14 @@ def run_preprocessing(config: dict) -> None:
         ascending=False,
         sort_cols=["lsoa_code", "year"],
         group_col="lsoa_code",
-        val_col="gdhi_annual",
+        val_col="uncon_gdhi",
     )
     df = calc_rate_of_change(
         df,
         ascending=True,
         sort_cols=["lsoa_code", "year"],
         group_col="lsoa_code",
-        val_col="gdhi_annual",
+        val_col="uncon_gdhi",
     )
     df = flag_rollback_years(df)
 
@@ -169,7 +183,7 @@ def run_preprocessing(config: dict) -> None:
             df,
             iqr_prefix=raw_prefix,
             group_col=["lad_code", "year"],
-            val_col="gdhi_annual",
+            val_col="uncon_gdhi",
             iqr_lower_quantile=iqr_lower_quantile,
             iqr_upper_quantile=iqr_upper_quantile,
             iqr_multiplier=iqr_multiplier,
@@ -178,6 +192,24 @@ def run_preprocessing(config: dict) -> None:
     df = create_master_flag(df, zscore_calculation, iqr_calculation)
 
     logger.info("Saving interim data")
+    qa_df = pd.DataFrame(
+        {
+            "config": [
+                f"zscore_lower_threshold = {zscore_lower_threshold}",
+                f"zscore_upper_threshold = {zscore_upper_threshold}",
+                f"iqr_lower_quantile = {iqr_lower_quantile}",
+                f"iqr_upper_quantile = {iqr_upper_quantile}",
+                f"iqr_multiplier = {iqr_multiplier}",
+                f"transaction_name = {transaction_name}",
+            ],
+        }
+    )
+    qa_df.to_csv(
+        output_dir + gdhi_suffix + "manual_adj_preprocessing_config.txt",
+        index=False,
+        header=False,
+    )
+
     logger.info(f"{output_dir + interim_filename}")
     df.to_csv(
         output_dir + interim_filename,
@@ -193,7 +225,7 @@ def run_preprocessing(config: dict) -> None:
         "lad_code",
         "lad_name",
         "year",
-        "gdhi_annual",
+        "uncon_gdhi",
     ] + flag_cols
 
     df = df[cols_to_keep]
@@ -206,11 +238,11 @@ def run_preprocessing(config: dict) -> None:
     logger.info("Pivoting data back to wide format")
     # Pivot outlier df
     df_outlier = df.drop(columns=["mean_non_out_gdhi", "conlsoa_mean"])
-    df_outlier = pivot_output_long(df_outlier, "gdhi_annual", "conlsoa_gdhi")
+    df_outlier = pivot_output_long(df_outlier, "uncon_gdhi", "conlsoa_gdhi")
     df_outlier = pivot_wide_dataframe(df_outlier)
 
     # Pivot mean df
-    df_mean = df.drop(columns=["gdhi_annual", "conlsoa_gdhi"])
+    df_mean = df.drop(columns=["uncon_gdhi", "conlsoa_gdhi"])
     df_mean = pivot_output_long(df_mean, "mean_non_out_gdhi", "conlsoa_mean")
     df_mean = pivot_wide_dataframe(df_mean)
     df_mean["master_flag"] = "MEAN"

@@ -22,7 +22,9 @@ def pivot_adjustment_long(df: pd.DataFrame) -> pd.DataFrame:
     df_uncon = df.melt(
         id_vars=[
             "lsoa_code",
+            "lsoa_name",
             "lad_code",
+            "lad_name",
             "adjust",
             "year_to_adjust",
         ],
@@ -34,7 +36,9 @@ def pivot_adjustment_long(df: pd.DataFrame) -> pd.DataFrame:
     df_con = df.melt(
         id_vars=[
             "lsoa_code",
+            "lsoa_name",
             "lad_code",
+            "lad_name",
             "adjust",
             "year_to_adjust",
         ],
@@ -48,7 +52,9 @@ def pivot_adjustment_long(df: pd.DataFrame) -> pd.DataFrame:
         df_con,
         on=[
             "lsoa_code",
+            "lsoa_name",
             "lad_code",
+            "lad_name",
             "adjust",
             "year_to_adjust",
             "year",
@@ -60,7 +66,7 @@ def pivot_adjustment_long(df: pd.DataFrame) -> pd.DataFrame:
     return df_combined
 
 
-def pivot_wide_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+def pivot_wide_final_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Pivots the DataFrame from long to wide format.
 
@@ -74,18 +80,11 @@ def pivot_wide_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     # Pivot wide to get dates as columns
     df_wide = df.pivot(
-        index=["lsoa_code"],
+        index=["lsoa_code", "lsoa_name", "lad_code", "lad_name"],
         columns="year",
         values="con_gdhi",
     )
     df_wide.columns.name = None  # This removes the label from columns
     df_wide = df_wide.reset_index()
-
-    id_cols = ["lsoa_code"]
-
-    # Rename only numeric column names
-    df_wide = df_wide.rename(
-        columns=lambda col: f"Adjust_Con_{col}" if col not in id_cols else col
-    )
 
     return df_wide

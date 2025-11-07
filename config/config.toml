@@ -1,16 +1,25 @@
 [user_settings]
+# Common settings
 local_or_shared = "shared" # "local" or "shared"
+start_year = 2010
+end_year = 2023
+output_data = true
+output_data_prefix = "test"
+# Preprocessing settings
 preprocessing = true # Set to true if you want to run preprocessing
 zscore_calculation = true # Set to true if you want to run z-score calculation
 iqr_calculation = true # Set to true if you want to run IQR calculation
+zscore_lower_threshold = -3.0 # zscore flagged if it is below this threshold
+zscore_upper_threshold = 3.0 # zscore flagged if it is above this threshold
+iqr_lower_quantile = 0.25 # quantile for IQR lower bound
+iqr_upper_quantile = 0.75 # quantile for IQR upper bound
+iqr_multiplier = 1.0 # multiplier for calculating IQR bounds
+transaction_name = "Imputed social contributions/Social benefits received"
+# Adjustment settings
 adjustment = false # Set to true if you want to run manual adjustment
-zscore_lower_threshold = -3.0
-zscore_upper_threshold = 3.0
-iqr_lower_quantile = 0.25
-iqr_upper_quantile = 0.75
-iqr_multiplier = 3.0
-transaction_name = "Compensation of employees"
-output_data = true
+sas_code_filter = "G866BTR"
+cord_code_filter = "D75"
+credit_debit_filter = "D"
 
 [pipeline_settings]
 schema_path = "config/schemas/"
@@ -22,31 +31,44 @@ input_unconstrained_schema_name = "input_unconstrained_schema.toml"
 output_preprocess_schema_path = "output_preprocess_schema.toml"
 output_adjustment_schema_path = "output_adjustment_schema.toml"
 
-[local_settings]
-input_gdhi_file_path = "D:/gdhi_adj_dummy.csv" #Run from D: drive here
-output_file_path = "D:/" #Set output directory here to D:drive
-
 [preprocessing_shared_settings]
 #To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
 #sharepoint site, go into the subfolder 'GDHI' and open '2025_manual_adjustments'
 #and click the 'sync' button to sync to your local OneDrive.
-input_dir = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/"
-input_gdhi_file_path = "DAP_Exported/GDHI_Preproc_HMRC_PIR_Unconstrained.csv"
-input_ra_lad_file_path = "Reg_Accounts/uk_gdhi_by_component_2022.csv"
-output_dir = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/Output/"
+input_dir = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/"
+input_unconstrained_file_path = "DAP_exported_311025/GDHI_Disclosure_CIS_BIDS_Total_Benefits_Unconstrained.csv"
+input_ra_lad_file_path = "Reg_Accounts/regionalgrossdisposablehouseholdincomelocalauthorities2023Table7.csv"
+output_dir = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Preprocessing/"
 interim_filename = "manual_adj_preprocessing_interim_scores.csv" #Change name of file here
-output_filename = "manual_adj_preprocessed_output.csv" #Change name of file here
+output_filename = "manual_adj_preprocessing_output.csv" #Change name of file here
 
 [adjustment_shared_settings]
 #To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
 #sharepoint site, go into the subfolder 'GDHI' and open '2025_manual_adjustments'
 #and click the 'sync' button to sync to your local OneDrive.
-input_adj_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Worked_Example/Manual_Adjustment_Adjustment_test_data.csv"
-input_constrained_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Worked_Example/Manual_Adjustment_Adjustment_con_dap_data.csv"
-input_unconstrained_file_path = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Worked_Example/Manual_Adjustment_Adjustment_uncon_dap_data.csv"
-output_dir = "/Office for National Statistics/Subnational Statistics - 2025_Manual_Adjustments/Testing_Data/Output/"
-output_filename = "gdhi_manual_adj_adjusted_output.csv" #Change name of file here
+input_adj_file_path = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/PowerBI_Tool/gdhi_manual_adj_preprocessed_SBRSS_output_test_analyst_assessment_DUMMY.csv"
+input_constrained_file_path = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/DAP_Exported/GDHI_Preproc_HMRC_SBRSS_Constrained.csv"
+input_unconstrained_file_path = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/DAP_Exported/GDHI_Preproc_HMRC_SBRSS_Unconstrained.csv"
+output_dir = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Adjustment/"
+interim_filename =  "manual_adj_adjustments_interim_QA.csv" #Change name of file here
+output_filename = "manual_adj_adjustments_output.csv" #Change name of file here
 
-# Application metadata
-app_name = "simple_pipeline"
-app_description = "A simple pipeline for processing data."
+[preprocessing_local_settings]
+#Match below local settings to locations of files stored locally
+input_dir = "D:/gdhi/Testing_Data/"
+input_unconstrained_file_path = "gdhi_adj_dummy.csv"
+input_ra_lad_file_path = "gdhi_adj_ra_lad_dummy.csv"
+output_dir = "D:/gdhi/Testing_Data/Output/"
+interim_filename = "manual_adj_preprocessing_interim_scores.csv" #Change name of file here
+output_filename = "manual_adj_preprocessed_output.csv" #Change name of file here
+
+[adjustment_local_settings]
+#To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
+#sharepoint site, go into the subfolder 'GDHI' and open '2025_manual_adjustments'
+#and click the 'sync' button to sync to your local OneDrive.
+input_adj_file_path = "D:/gdhi/Testing_Data/gdhi_adj_dummy.csv"
+input_constrained_file_path = "D:/gdhi/Testing_Data/gdhi_adj_constrained_dummy.csv"
+input_unconstrained_file_path = "D:/gdhi/Testing_Data/gdhi_adj_unconstrained_dummy.csv"
+output_dir = "D:/gdhi/Testing_Data/Output/"
+interim_filename =  "manual_adj_adjustments_interim_QA.csv" #Change name of file here
+output_filename = "gdhi_manual_adj_adjusted_output.csv" #Change name of file here

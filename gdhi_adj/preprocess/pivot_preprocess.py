@@ -27,19 +27,20 @@ def pivot_years_long_dataframe(
 
 
 def pivot_output_long(
-    df: pd.DataFrame, annual_gdhi: str, con_gdhi: str
+    df: pd.DataFrame, uncon_gdhi: str, con_gdhi: str
 ) -> pd.DataFrame:
     """Pivots the output DataFrame to long format.
     Args:
         df (pd.DataFrame): The input DataFrame in wide format.
-        annual_gdhi (str): The column name for annual GDHI.
+        uncon_gdhi (str): The column name for unconstrained GDHI.
         con_gdhi (str): The column name for constrained GDHI.
 
     Returns:
         pd.DataFrame: The pivoted DataFrame in long format.
     """
-    df.rename(columns={annual_gdhi: "annual"}, inplace=True)
-    df.rename(columns={con_gdhi: "CONLSOA"}, inplace=True)
+    pivot_df = df.copy()
+    pivot_df.rename(columns={uncon_gdhi: "uncon"}, inplace=True)
+    pivot_df.rename(columns={con_gdhi: "CONLSOA"}, inplace=True)
 
     id_cols = [
         "lsoa_code",
@@ -47,18 +48,20 @@ def pivot_output_long(
         "lad_code",
         "lad_name",
         "year",
-    ] + [col for col in df.columns if col.startswith("master_")]
+    ] + [col for col in pivot_df.columns if col.startswith("master_")]
 
     # Pivot long to get a single 'metric' column with names as values
-    df = df.melt(
+    pivot_df = pivot_df.melt(
         id_vars=id_cols,
-        value_vars=["annual", "CONLSOA"],
+        value_vars=["uncon", "CONLSOA"],
         var_name="metric",
         value_name="value",
     )
-    df["metric_date"] = df["metric"] + "_" + df["year"].astype(str)
+    pivot_df["metric_date"] = (
+        pivot_df["metric"] + "_" + pivot_df["year"].astype(str)
+    )
 
-    return df
+    return pivot_df
 
 
 def pivot_wide_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -90,7 +93,7 @@ def pivot_wide_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     df.rename(
         columns=lambda col: (
-            col.replace("annual_", "") if "annual_" in col else col
+            col.replace("uncon_", "") if "uncon_" in col else col
         ),
         inplace=True,
     )

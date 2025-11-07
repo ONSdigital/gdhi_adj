@@ -16,8 +16,8 @@ Deduced_Data_Type = "str"
 
 [adjust]
 old_name = "Adjust"
-Deduced_Data_Type = "boolean"
+Deduced_Data_Type = "str" # Alhough adjust is boolean, it is treated as a string due to the input having a lot of missing values or other values.
 
 [year]
 old_name = "Year"
-Deduced_Data_Type = "int"
+Deduced_Data_Type = "str" # Although year is numeric, it is treated as a string due to the input possibly being a list of years separated by commas.

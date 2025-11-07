@@ -36,7 +36,7 @@ class TestMasterFlag:
             "year": [2001, 2002, 2001, 2002, 2001, 2002],
             "z_bkwd_flag":      [True, False, False, False, False, False],
             "z_frwd_flag":      [False, False, False, False, False, False],
-            "iqr_raw_flag":     [False, False, True, False, False, False],
+            "iqr_raw_flag":     [True, False, True, False, False, False],
         })
 
         result_df = create_master_flag(
@@ -48,10 +48,10 @@ class TestMasterFlag:
             "year": [2001, 2002, 2001, 2002, 2001, 2002],
             "z_bkwd_flag":      [True, False, False, False, False, False],
             "z_frwd_flag":      [False, False, False, False, False, False],
-            "iqr_raw_flag":     [False, False, True, False, False, False],
+            "iqr_raw_flag":     [True, False, True, False, False, False],
             "master_z_flag":    [True, True, False, False, False, False],
-            "master_iqr_flag":  [False, False, True, True, False, False],
-            "master_flag":      [True, True, True, True, False, False],
+            "master_iqr_flag":  [True, True, True, True, False, False],
+            "master_flag":      [True, True, False, False, False, False],
         })
 
         pd.testing.assert_frame_equal(result_df, expected_df)
