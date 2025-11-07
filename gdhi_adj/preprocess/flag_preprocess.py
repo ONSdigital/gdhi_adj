@@ -75,7 +75,7 @@ def create_master_flag(
             iqr_count[["master_iqr_flag"]], on="lsoa_code", how="left"
         )
 
-    # Create a master flag that is True if any master flag is True.
+    # Create a master flag that is True if all master flags are True.
     flag_cols = [col for col in df.columns if col.startswith("master_")]
     df["master_flag"] = df[flag_cols].all(axis=1)
 
