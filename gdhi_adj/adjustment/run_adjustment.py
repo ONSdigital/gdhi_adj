@@ -6,6 +6,7 @@ import pandas as pd
 
 from gdhi_adj.adjustment.calc_adjustment import (
     apportion_adjustment,
+    apportion_negative_adjustment,
     calc_midpoint_adjustment,
     calc_midpoint_val,
 )
@@ -163,6 +164,7 @@ def run_adjustment(config: dict) -> None:
 
     logger.info("Apportioning adjustment values to all years")
     df = apportion_adjustment(df)
+    df = apportion_negative_adjustment(df)
 
     logger.info("Saving interim data")
     qa_df = pd.DataFrame(

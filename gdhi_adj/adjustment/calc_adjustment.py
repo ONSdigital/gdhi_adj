@@ -129,6 +129,48 @@ def apportion_adjustment(df: pd.DataFrame) -> pd.DataFrame:
         0,
     )
 
+    return adjusted_df.sort_values(by=["lad_code", "year"]).reset_index(
+        drop=True
+    )
+
+
+def apportion_negative_adjustment(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Change negative values to 0 and apportion negative adjustment values to all
+    LSOAs within an LAD/year group.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing data to adjust.
+
+    Returns:
+        pd.DataFrame: DataFrame with negative adjustment values apportioned
+        accross all years within LSOA.
+    """
+    adjusted_df = df.copy()
+
+    adjusted_df["negative_diff"] = np.where(
+        adjusted_df["adjusted_con_gdhi"] < 0,
+        0 - adjusted_df["adjusted_con_gdhi"],
+        0,
+    )
+
+    adjusted_df["adjustment_val"] = adjusted_df.groupby(["lad_code", "year"])[
+        "negative_diff"
+    ].transform("sum")
+
+    adjusted_df["lsoa_count"] = (
+        adjusted_df[adjusted_df["adjusted_con_gdhi"] > 0]
+        .groupby(["lad_code", "year"])["lsoa_code"]
+        .transform("count")
+    )
+
+    adjusted_df["adjusted_con_gdhi"] = np.where(
+        adjusted_df["adjusted_con_gdhi"] > 0,
+        adjusted_df["adjusted_con_gdhi"]
+        - (adjusted_df["adjustment_val"] / adjusted_df["lsoa_count"]),
+        0,
+    )
+
     # Adjustment check: sums by (lad_code, year) should match pre- and post-
     # adjustment
     adjusted_df_check = adjusted_df.copy()
