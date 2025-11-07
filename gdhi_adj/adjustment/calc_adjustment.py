@@ -21,11 +21,12 @@ def calc_midpoint_val(df: pd.DataFrame) -> pd.DataFrame:
         # handle list-like first — avoids calling pd.isna on arrays/Series
         if is_list_like(x) and not isinstance(x, (str, bytes)):
             return list(x)
-        if pd.isna(x):
+        elif pd.isna(x):
             return []
-        if isinstance(x, (list, tuple, set)):
+        elif isinstance(x, (list, tuple, set)):
             return list(x)
-        return [x]
+        else:
+            return [x]
 
     df["year_to_adjust"] = df["year_to_adjust"].apply(ensure_list)
 

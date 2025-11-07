@@ -14,7 +14,7 @@ zscore_upper_threshold = 3.0 # zscore flagged if it is above this threshold
 iqr_lower_quantile = 0.25 # quantile for IQR lower bound
 iqr_upper_quantile = 0.75 # quantile for IQR upper bound
 iqr_multiplier = 1.0 # multiplier for calculating IQR bounds
-transaction_name = "Imputed social contributions/Social benefits received"
+transaction_name = "Imputed Social Contributions Received"
 # Adjustment settings
 adjustment = false # Set to true if you want to run manual adjustment
 sas_code_filter = "G866BTR"
@@ -37,7 +37,7 @@ output_adjustment_schema_path = "output_adjustment_schema.toml"
 #and click the 'sync' button to sync to your local OneDrive.
 input_dir = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/"
 input_unconstrained_file_path = "DAP_exported_311025/GDHI_Disclosure_CIS_BIDS_Total_Benefits_Unconstrained.csv"
-input_ra_lad_file_path = "Reg_Accounts/regionalgrossdisposablehouseholdincomelocalauthorities2023Table7.csv"
+input_ra_lad_file_path = "Reg_Accounts/GDHI_1997_2023_LAD_Wide_Form.csv"
 output_dir = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Preprocessing/"
 interim_filename = "manual_adj_preprocessing_interim_scores.csv" #Change name of file here
 output_filename = "manual_adj_preprocessing_output.csv" #Change name of file here
