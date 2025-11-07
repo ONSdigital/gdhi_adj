@@ -34,9 +34,10 @@ def constrain_to_reg_acc(
         raise ValueError("DataFrames have different columns for joining.")
 
     # Remove commas separating thousands and convert to numeric
-    reg_acc["uncon_gdhi"] = (
-        reg_acc["uncon_gdhi"].str.replace(",", "").astype("Int64")
-    )
+    if reg_acc["uncon_gdhi"].dtype == "object":
+        reg_acc["uncon_gdhi"] = (
+            reg_acc["uncon_gdhi"].str.replace(",", "").astype("float64")
+        )
 
     reg_acc.rename(columns={"uncon_gdhi": "conlad_gdhi"}, inplace=True)
 
