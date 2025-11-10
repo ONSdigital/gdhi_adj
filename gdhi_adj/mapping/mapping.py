@@ -120,6 +120,7 @@ def aggregate_lad(df):
 
     agg_columns = geo_columns + other_columns
     agg_df = df.groupby(agg_columns, as_index=False)[value_columns].sum()
+    logger.info("Aggregated data to LAD level")
     return agg_df
 
 
@@ -154,13 +155,16 @@ def lau_lad_main(config_path="config/config.toml", df=pd.DataFrame()):
         mapper_df = load_mapper(config)
         mapper_df, valid_mapper = cleam_validate_mapper(mapper_df)
 
-        joined_df = join_mapper(df, mapper_df)
-
-        agg_df = aggregate_lad(joined_df)
-        reformatted_df = reformat(agg_df, original_columns)
-        save_output(config, reformatted_df)
+        result_df = join_mapper(df, mapper_df)
+        if config["mapping"]["aggregate_to_lad"]:
+            logger.info("Starting aggregating data to LAD level as requested.")
+            result_df = aggregate_lad(result_df)
+        else:
+            logger.info("Aggregation to LAD not requested.")
+        result_df = reformat(result_df, original_columns)
+        save_output(config, result_df)
         logger.info("Completed mapping LAUs to LADs")
-        return reformatted_df
+        return result_df
     else:
         logger.info(
             "Mapping LAUs to LADs not needed. Returning original dataframe."

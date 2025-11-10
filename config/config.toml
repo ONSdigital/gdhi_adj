@@ -75,11 +75,12 @@ output_filename = "gdhi_manual_adj_adjusted_output.csv" #Change name of file her
 
 [mapping]
 map_lau_lad = true
+aggregate_to_lad = false
 data_dir = "D:/data/gdhi_adj/"
 mapper_dir = "D:/data/gdhi_adj/"
 data_file = "test_manual_adj_adjustments_output.csv"
 output_dir =  "D:/data/gdhi_adj/"
-output_file = "test_manual_adj_adjustments_output_lad.csv"
+output_file = "test_manual_adj_adjustments_output_lad_not_aggregates.csv"
 lau_lad_file = "D:/data/gdhi_adj/itl_2022.csv"
 lau_lad_schema_name = "lau_lad_schema.toml"
 data_lad_code = "lad_code"
