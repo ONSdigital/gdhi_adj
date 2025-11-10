@@ -1,0 +1,15 @@
+[lad_code]
+old_name = "LAD20CD"
+Deduced_Data_Type = "str"
+
+[lad_name]
+old_name = "LAD20NM"
+Deduced_Data_Type = "str"
+
+[lau_code]
+old_name = "LAU121CD"
+Deduced_Data_Type = "str"
+
+[lad_name]
+old_name = "LAU121NM"
+Deduced_Data_Type = "str"

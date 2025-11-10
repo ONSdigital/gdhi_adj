@@ -72,3 +72,13 @@ input_unconstrained_file_path = "D:/gdhi/Testing_Data/gdhi_adj_unconstrained_dum
 output_dir = "D:/gdhi/Testing_Data/Output/"
 interim_filename =  "manual_adj_adjustments_interim_QA.csv" #Change name of file here
 output_filename = "gdhi_manual_adj_adjusted_output.csv" #Change name of file here
+
+[mapping]
+map_lau_lad = true
+lau_lad_path = "D:/data/gdhi_adj/itl_2022.csv"
+lau_lad_schema_name = "lau_lad_schema.toml"
+use_names = true
+save_intermediate = true
+save_final = true
+validate_mapper = false
+validate_data = false
