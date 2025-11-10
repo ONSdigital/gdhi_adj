@@ -1,6 +1,12 @@
 """Mapping functions for local authority units mapped to LADs."""
 
+import os
+
 import pandas as pd
+
+root_dir = "d:/repos/gdhi_adj/"
+
+os.chdir(root_dir)
 
 from gdhi_adj.utils.helpers import load_toml_config
 from gdhi_adj.utils.logger import GDHI_adj_logger
