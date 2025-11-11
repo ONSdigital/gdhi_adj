@@ -6,8 +6,8 @@ import pandas as pd
 
 from gdhi_adj.adjustment.calc_adjustment import (
     apportion_adjustment,
+    calc_imputed_adjustment,
     calc_imputed_val,
-    calc_midpoint_adjustment,
 )
 from gdhi_adj.adjustment.filter_adjustment import (
     filter_adjust,
@@ -45,8 +45,8 @@ def run_adjustment(config: dict) -> None:
     5. Join analyst output with constrained and unconstrained data.
     6. Pivot the DataFrame to long format for manipulation.
     7. Filter data by the specified year range.
-    8. Calculate the midpoints for outlier years.
-    9. Calculate adjustment values based on midpoints.
+    8. Calculate the imputed gdhi values for outlier years.
+    9. Calculate adjustment values based on imputed gdhi.
     10. Apportion adjustment values to all years.
     11. Save interim data with all calculated values.
     12. Pivot data to wide format for PowerBI QA reiteration.
@@ -155,11 +155,11 @@ def run_adjustment(config: dict) -> None:
     logger.info("Filtering data for specified years")
     df = filter_year(df, start_year, end_year)
 
-    logger.info("Calculating outlier year midpoints")
-    midpoint_df = calc_imputed_val(df, start_year, end_year)
+    logger.info("Calculating outlier year imputed_gdhi values")
+    imputed_df = calc_imputed_val(df, start_year, end_year)
 
-    logger.info("Calculating adjustment values based on midpoints")
-    df = calc_midpoint_adjustment(df, midpoint_df)
+    logger.info("Calculating adjustment values based on imputed gdhi")
+    df = calc_imputed_adjustment(df, imputed_df)
 
     logger.info("Apportioning adjustment values to all years")
     df = apportion_adjustment(df)
@@ -190,8 +190,8 @@ def run_adjustment(config: dict) -> None:
     df = df.drop(
         columns=[
             "con_gdhi",
-            "midpoint",
-            "midpoint_diff",
+            "imputed_gdhi",
+            "imputed_diff",
             "adjustment_val",
             "lsoa_count",
         ]

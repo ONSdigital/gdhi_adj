@@ -2,20 +2,21 @@ import pandas as pd
 
 from gdhi_adj.adjustment.calc_adjustment import (
     apportion_adjustment,
+    calc_imputed_adjustment,
     calc_imputed_val,
-    calc_midpoint_adjustment,
 )
 
 
 def test_calc_imputed_val():
-    """Test the calc_imputed_val function returns the expected midpoint row.
+    """Test the calc_imputed_val function returns the expected imputed values.
 
     The function should:
     - select rows where the row's `year` is contained in that row's
       `year_to_adjust` value,
     - compute `prev_con_gdhi` and `next_con_gdhi` by looking up the
       same `lsoa_code` at year-1 and year+1,
-    - compute `midpoint` as the mean of the two neighbouring values.
+    - compute `imputed_gdhi` by either interpolating or extrapolating, two safe
+      designated values.
     """
     df = pd.DataFrame({
         "lsoa_code": ["E1", "E1", "E1", "E2"],
@@ -41,14 +42,14 @@ def test_calc_imputed_val():
         "prev_con_gdhi": [5.0],
         "next_year": [2004],
         "next_con_gdhi": [10.0],
-        "midpoint": [7.5],
+        "imputed_gdhi": [7.5],
     })
 
     pd.testing.assert_frame_equal(result_df, expected_df, check_dtype=False)
 
 
-def test_calc_midpoint_adjustment():
-    """Test calc_midpoint_adjustment computes midpoint_diff and apportions
+def test_calc_imputed_adjustment():
+    """Test calc_imputed_adjustment computes imputed_diff and apportions
     the summed adjustment_val across all rows for the same LSOA.
     """
     df = pd.DataFrame({
@@ -58,24 +59,25 @@ def test_calc_midpoint_adjustment():
         "con_gdhi": [5.0, 8.0, 10.0, 15.0],
     })
 
-    # midpoint_df contains only the outlier row(s) with their computed midpoint
-    midpoint_df = pd.DataFrame({
+    # imputed_df contains only the outlier row(s) with their computed
+    # imputed_gdhi
+    imputed_df = pd.DataFrame({
         "lsoa_code": ["E2", "E3"],
         "year": [2002, 2002],
         "con_gdhi": [8.0, 10.0],
-        "midpoint": [7.5, 11.0],
+        "imputed_gdhi": [7.5, 11.0],
     })
 
-    result_df = calc_midpoint_adjustment(df, midpoint_df)
+    result_df = calc_imputed_adjustment(df, imputed_df)
 
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E3", "E1"],
         "lad_code": ["E01", "E01", "E01", "E01"],
         "year": [2002, 2002, 2002, 2003],
         "con_gdhi": [5.0, 8.0, 10.0, 15.0],
-        "midpoint": [None, 7.5, 11.0, None],
-        "midpoint_diff": [None, 0.5, -1.0, None],
-        # group sum of midpoint_diff for E01 2002 is -0.5; for E01 2003 (all
+        "imputed_gdhi": [None, 7.5, 11.0, None],
+        "imputed_diff": [None, 0.5, -1.0, None],
+        # group sum of imputed_diff for E01 2002 is -0.5; for E01 2003 (all
         # NaN) pandas produces 0.0 when summing; transform('sum') therefore
         # gives 0.5 for 2002 rows and 0.0 for 2003 rows.
         "adjustment_val": [-0.5, -0.5, -0.5, 0.0],
@@ -94,8 +96,8 @@ def test_apportion_adjustment():
         "lad_code": ["E01", "E01", "E01", "E01"],
         "year": [2002, 2002, 2002, 2003],
         "con_gdhi": [5.0, 8.0, 10.0, 15.0],
-        # midpoint only present for E1 2003
-        "midpoint": [None, 7.4, None, None],
+        # imputed_gdhi only present for E1 2003
+        "imputed_gdhi": [None, 7.4, None, None],
         # adjustment_val is set for E1 (will be apportioned), None for E2
         "adjustment_val": [0.6, 0.6, 0.6, None],
     })
@@ -107,7 +109,7 @@ def test_apportion_adjustment():
         "lad_code": ["E01", "E01", "E01", "E01"],
         "year": [2002, 2002, 2002, 2003],
         "con_gdhi": [5.0, 8.0, 10.0, 15.0],
-        "midpoint": [None, 7.4, None, None],
+        "imputed_gdhi": [None, 7.4, None, None],
         "adjustment_val": [0.6, 0.6, 0.6, None],
         "lsoa_count": [3, 3, 3, 1],
         "adjusted_con_gdhi": [5.2, 7.6, 10.2, 15.0],

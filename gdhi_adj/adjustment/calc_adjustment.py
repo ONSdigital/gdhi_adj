@@ -57,7 +57,7 @@ def calc_imputed_val(
         adjust_years_set = (
             set(adjust_years) if adjust_years is not None else set()
         )
-        while year in adjust_years_set and year > start_year:
+        while year in adjust_years_set and year > (start_year - 1):
             year -= 1
         return year
 
@@ -81,7 +81,7 @@ def calc_imputed_val(
         adjust_years_set = (
             set(adjust_years) if adjust_years is not None else set()
         )
-        while year in adjust_years_set and year < end_year:
+        while year in adjust_years_set and year < (end_year + 1):
             year += 1
         return year
 
@@ -100,8 +100,10 @@ def calc_imputed_val(
     )
 
     imputed_df["imputed_gdhi"] = np.where(
-        imputed_df["prev_con_gdhi"].notna()
-        & imputed_df["next_con_gdhi"].notna(),
+        (
+            imputed_df["prev_con_gdhi"].notna()
+            & imputed_df["next_con_gdhi"].notna()
+        ),
         (imputed_df["next_con_gdhi"] - imputed_df["prev_con_gdhi"])
         / (imputed_df["next_safe_year"] - imputed_df["prev_safe_year"])
         * (imputed_df["year"] - imputed_df["prev_safe_year"])
@@ -129,7 +131,7 @@ def calc_imputed_val(
         on=["lsoa_code", "additional_safe_year"],
         how="left",
     )
-    breakpoint()
+
     imputed_df["imputed_gdhi"] = np.where(
         imputed_df["imputed_gdhi"].isna()
         & imputed_df["additional_con_gdhi"].notna(),
@@ -144,53 +146,42 @@ def calc_imputed_val(
         ),
         imputed_df["imputed_gdhi"],
     )
-    # imputed_df["imputed_gdhi2"] = np.where(
-    #     (imputed_df["prev_con_gdhi"].notna() &
-    #         imputed_df["next_con_gdhi"].notna()),
-    #     interp1d(
-    #         x=[imputed_df["prev_safe_year"], imputed_df["next_safe_year"]],
-    #         y=[imputed_df["prev_con_gdhi"], imputed_df["next_con_gdhi"]],
-    #         fill_value="extrapolate"
-    #     )(imputed_df["year"]),
-    #     np.NaN
-    # )
-    breakpoint()
 
     return imputed_df
 
 
-def calc_midpoint_adjustment(
+def calc_imputed_adjustment(
     df: pd.DataFrame,
-    midpoint_df: pd.DataFrame,
+    imputed_df: pd.DataFrame,
 ) -> pd.DataFrame:
     """
     Calculate the adjustment required for imputing constrained values with
-    their respective midpoints.
+    their respective imputed values.
 
     Args:
-        df (pd.DataFrame): DataFrame containing outlier midpoints.
-        midpoint_df (pd.DataFrame): DataFrame containing outlier midpoints.
+        df (pd.DataFrame): DataFrame containing all data.
+        imputed_df (pd.DataFrame): DataFrame containing outlier imputed values.
 
     Returns:
         adjustment_df (pd.DataFrame): DataFrame containing outlier adjustment
         values.
     """
-    adjustment_df = midpoint_df[
-        ["lsoa_code", "year", "con_gdhi", "midpoint"]
+    adjustment_df = imputed_df[
+        ["lsoa_code", "year", "con_gdhi", "imputed_gdhi"]
     ].copy()
 
-    adjustment_df["midpoint_diff"] = (
-        adjustment_df["con_gdhi"] - adjustment_df["midpoint"]
+    adjustment_df["imputed_diff"] = (
+        adjustment_df["con_gdhi"] - adjustment_df["imputed_gdhi"]
     )
 
     adjustment_df = df.merge(
-        adjustment_df[["lsoa_code", "year", "midpoint", "midpoint_diff"]],
+        adjustment_df[["lsoa_code", "year", "imputed_gdhi", "imputed_diff"]],
         on=["lsoa_code", "year"],
         how="left",
     )
     adjustment_df["adjustment_val"] = adjustment_df.groupby(
         ["lad_code", "year"]
-    )["midpoint_diff"].transform("sum")
+    )["imputed_diff"].transform("sum")
 
     return adjustment_df
 
@@ -213,8 +204,8 @@ def apportion_adjustment(df: pd.DataFrame) -> pd.DataFrame:
     ].transform("count")
 
     adjusted_df["adjusted_con_gdhi"] = np.where(
-        adjusted_df["midpoint"].notna(),
-        adjusted_df["midpoint"],
+        adjusted_df["imputed_gdhi"].notna(),
+        adjusted_df["imputed_gdhi"],
         adjusted_df["con_gdhi"],
     )
 
