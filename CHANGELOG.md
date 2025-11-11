@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Filter for selected years and components.
 - Formatting of input data for adjustment.
 - Test coverage report.
+- Apportion over adjusted negative values.
 
 ### Changed
 - Adjustment values now determined by interpolation/ extrapolation.
