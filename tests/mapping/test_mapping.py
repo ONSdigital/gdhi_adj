@@ -5,7 +5,7 @@ import pytest
 
 from gdhi_adj.mapping.mapping_main import (
     aggregate_lad,
-    cleam_validate_mapper,
+    clean_validate_mapper,
     join_mapper,
     reformat,
     rename_s30_to_lad,
@@ -53,7 +53,7 @@ def test_rename_s30_to_lad(df_input, expected_columns, expected_mapping):
     assert mapping_flag == expected_mapping
 
 
-def test_cleam_validate_mapper():
+def test_clean_validate_mapper():
     """Test mapper cleaning and validation."""
     df = pd.DataFrame({
         "mapper_lad_code": ["L1", "L2", "L1"],
@@ -62,7 +62,7 @@ def test_cleam_validate_mapper():
         "mapper_lau_name": ["LAU1", "LAU2", "LAU1"],
         "extra_col": [1, 2, 1]
     })
-    cleaned_df, valid = cleam_validate_mapper(df)
+    cleaned_df, valid = clean_validate_mapper(df)
     assert valid is True
     assert "extra_col" not in cleaned_df.columns
     assert len(cleaned_df) == 2

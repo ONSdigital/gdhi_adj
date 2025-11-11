@@ -71,7 +71,7 @@ def load_mapper(config):
     return mapper_df
 
 
-def cleam_validate_mapper(mapper_df):
+def clean_validate_mapper(mapper_df):
 
     mapper_df = mapper_df[
         [
@@ -153,7 +153,7 @@ def lau_lad_main(config_path="config/config.toml", df=pd.DataFrame()):
     print(f"Mapping needed: {need_mapping}")
     if need_mapping:
         mapper_df = load_mapper(config)
-        mapper_df, valid_mapper = cleam_validate_mapper(mapper_df)
+        mapper_df, valid_mapper = clean_validate_mapper(mapper_df)
 
         result_df = join_mapper(df, mapper_df)
         if config["mapping"]["aggregate_to_lad"]:
