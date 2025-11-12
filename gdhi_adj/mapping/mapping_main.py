@@ -96,9 +96,10 @@ def join_mapper(df, mapper_df):
         right_on="mapper_lau_code",
         how="left",
     )
-    cond = result_df["mapper_lad_code"].isna().any()
-
-    logger.info(f"There are null LADs: {cond}")
+    null_series = result_df["mapper_lad_code"].isna()
+    cond = null_series.any()
+    if cond:
+        logger.info("There are null LADs:/n{result_df[null_series]}")
     result_df = result_df.drop(columns=["data_lau_code", "data_lau_name"])
     return result_df
 
