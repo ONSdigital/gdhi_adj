@@ -6,7 +6,7 @@ end_year = 2023
 output_data = true
 output_data_prefix = "test"
 # Preprocessing settings
-preprocessing = true # Set to true if you want to run preprocessing
+preprocessing = false # Set to true if you want to run preprocessing
 zscore_calculation = true # Set to true if you want to run z-score calculation
 iqr_calculation = true # Set to true if you want to run IQR calculation
 zscore_lower_threshold = -3.0 # zscore flagged if it is below this threshold
@@ -16,7 +16,7 @@ iqr_upper_quantile = 0.75 # quantile for IQR upper bound
 iqr_multiplier = 1.0 # multiplier for calculating IQR bounds
 transaction_name = "Imputed Social Contributions Received"
 # Adjustment settings
-adjustment = false # Set to true if you want to run manual adjustment
+adjustment = true # Set to true if you want to run manual adjustment
 sas_code_filter = "G866BTR"
 cord_code_filter = "D75"
 credit_debit_filter = "D"

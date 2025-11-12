@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from gdhi_adj.adjustment.calc_adjustment import (
     apportion_adjustment,
@@ -186,3 +187,45 @@ class TestApportionNegativeAdjustment:
         pd.testing.assert_frame_equal(
             result_df, expected_df, check_dtype=False
         )
+
+    # def test_apportion_negative_adjustment_zero_lsoa_count(self):
+    #     """Test apportion_negative_adjustment returns ValueError when the
+    #     lsoa_count is zero for a (lad_code, year) group.
+    #     """
+
+    #     df = pd.DataFrame({
+    #         "lsoa_code": ["E1", "E2"],
+    #         "lad_code": ["E01", "E01"],
+    #         "year": [2002, 2002],
+    #         "con_gdhi": [1.0, 0.0],
+    #         "lsoa_count": [0, 0],
+    #         "adjustment_val": [-1.5, -1.5],
+    #         "adjusted_con_gdhi": [-5.0, -1.0],
+    #     })
+
+    #     with pytest.raises(
+    #         ValueError,
+    #         match="Zero LSOA count check failed:"
+    #     ):
+    #         apportion_negative_adjustment(df)
+
+    def test_apportion_negative_adjustment_remains_negative(self):
+        """Test apportion_negative_adjustment returns ValueError when the
+        adjusted_con_gdhi still contains a negative value after adjustment.
+        """
+
+        df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2"],
+            "lad_code": ["E01", "E01"],
+            "year": [2002, 2002],
+            "con_gdhi": [10.0, 1.0],
+            "lsoa_count": [2, 2],
+            "adjustment_val": [-1.5, -1.5],
+            "adjusted_con_gdhi": [-5.0, 1.0],
+        })
+
+        with pytest.raises(
+            ValueError,
+            match="Negative value check failed:"
+        ):
+            apportion_negative_adjustment(df)
