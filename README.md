@@ -57,9 +57,9 @@ This project flags outliers of GDHI data at LSOA levels and adjusts the outlier 
 
    conda activate gdhi_adj_312
    ```
-6. **Install the required packages:**
+6. **Install the package and its dependencies in "editable" mode (so changes to the code are reflected immediately without reinstalling):**
    ```sh
-   pip install -r requirements.txt
+   pip install -e .
    ```
 7. **Install and run all pre-commits:**
    ```sh
