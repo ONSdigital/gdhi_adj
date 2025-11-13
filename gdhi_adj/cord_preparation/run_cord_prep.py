@@ -2,6 +2,7 @@
 
 import os
 
+from gdhi_adj.cord_preparation.impute_cord_prep import impute_suppression_x
 from gdhi_adj.utils.helpers import read_with_schema, write_with_schema
 from gdhi_adj.utils.logger import GDHI_adj_logger
 
@@ -30,14 +31,19 @@ def run_cord_preparation(config: dict) -> None:
 
     logger.info("Loading configuration settings")
     local_or_shared = config["user_settings"]["local_or_shared"]
+    adjustment_filepath_dict = config[f"adjustment_{local_or_shared}_settings"]
     filepath_dict = config[f"cord_prep_{local_or_shared}_settings"]
     schema_path = config["pipeline_settings"]["schema_path"]
 
     input_cord_file_path = os.path.join(
-        "C:/Users/", os.getlogin(), filepath_dict["input_cord_file_path"]
+        "C:/Users/",
+        os.getlogin(),
+        adjustment_filepath_dict["output_dir"],
+        adjustment_filepath_dict["output_filename"],
     )
     input_cord_prep_schema_path = os.path.join(
-        schema_path, config["pipeline_settings"]["input_cord_prep_schema"]
+        schema_path,
+        config["pipeline_settings"]["output_adjustment_schema_path"],
     )
 
     output_data_prefix = config["user_settings"]["output_data_prefix"] + "_"
@@ -54,7 +60,18 @@ def run_cord_preparation(config: dict) -> None:
     df = read_with_schema(input_cord_file_path, input_cord_prep_schema_path)
 
     logger.info("Applying CORD-specific transformations and filters")
-    # Additional CORD preparation steps would go here
+    df = impute_suppression_x(
+        df,
+        target_cols=[
+            "2010",
+            "2011",
+            "2012",
+        ],
+        transaction_col="transaction",
+        lad_col="lad_code",
+        transaction_value="D623",
+        lad_val=["95", "S"],
+    )
 
     # Save prepared CORD data file with new filename if specified
     if config["user_settings"]["output_data"]:

@@ -1,4 +1,9 @@
 [user_settings]
+# Module selection: Set to true to run module, not recommended to run multiple
+# modules at once.
+preprocessing = false
+adjustment = false
+cord_preparation = true
 # Common settings
 local_or_shared = "shared" # "local" or "shared"
 start_year = 2010
@@ -6,7 +11,6 @@ end_year = 2023
 output_data = true
 output_data_prefix = "test"
 # Preprocessing settings
-preprocessing = false # Set to true if you want to run preprocessing
 zscore_calculation = true # Set to true if you want to run z-score calculation
 iqr_calculation = true # Set to true if you want to run IQR calculation
 zscore_lower_threshold = -3.0 # zscore flagged if it is below this threshold
@@ -16,12 +20,10 @@ iqr_upper_quantile = 0.75 # quantile for IQR upper bound
 iqr_multiplier = 1.0 # multiplier for calculating IQR bounds
 transaction_name = "Imputed Social Contributions Received"
 # Adjustment settings
-adjustment = true # Set to true if you want to run manual adjustment
 sas_code_filter = "G866BTR"
 cord_code_filter = "D75"
 credit_debit_filter = "D"
 # CORD preparation settings
-cord_preparation = true # Set to true if you want to run CORD preparation
 
 [pipeline_settings]
 schema_path = "config/schemas/"
@@ -32,7 +34,6 @@ input_adj_schema_name = "input_adj_schema.toml"
 input_constrained_schema_name = "input_constrained_schema.toml"
 input_unconstrained_schema_name = "input_unconstrained_schema.toml"
 output_adjustment_schema_path = "output_adjustment_schema.toml"
-input_cord_prep_schema_path = "input_cord_prep_schema.toml"
 output_cord_prep_schema_path = "output_cord_prep_schema.toml"
 
 [preprocessing_shared_settings]
@@ -61,9 +62,9 @@ output_filename = "manual_adj_adjustments_output.csv" #Change name of file here
 #To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
 #sharepoint site, go into the subfolder 'GDHI' and open '2025_manual_adjustments'
 #and click the 'sync' button to sync to your local OneDrive.
-input_cord_file_path = ""
-output_dir = ""
-output_filename = ""
+lsoa_lookup_file_path = ""
+output_dir = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/CORD_formatted"
+output_filename = "CP_data.csv"
 
 [preprocessing_local_settings]
 #Match below local settings to locations of files stored locally

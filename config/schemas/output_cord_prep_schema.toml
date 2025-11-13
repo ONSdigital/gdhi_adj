@@ -1,15 +1,11 @@
-["LSOA code"]
-old_name = "lsoa_code"
+["Transaction"]
+old_name = "transaction_name"
 Deduced_Data_Type = "str"
 
-["LSOA name"]
-old_name = "lsoa_name"
-Deduced_Data_Type = "str"
-
-["LAD code"]
+["Regional_Small_Area_Geography"]
 old_name = "lad_code"
 Deduced_Data_Type = "str"
 
-["LAD name"]
-old_name = "lad_name"
+["Account_Entry"]
+old_name = "credit_debit"
 Deduced_Data_Type = "str"
