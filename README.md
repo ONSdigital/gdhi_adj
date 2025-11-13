@@ -1,8 +1,13 @@
 # GDHI Adjustment Pipeline
 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![flake8](https://img.shields.io/badge/code%20style-flake8-5ed9c7.svg)](https://flake8.pycqa.org/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
+[![Docstring Style: Google](https://img.shields.io/badge/docstring%20style-google-brightgreen.svg)](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
+
 This project flags outliers of GDHI data at LSOA levels and adjusts the outlier values.
 
-## Installation
+## 💾 Installation
 
 ### User Installation:
 
@@ -67,7 +72,7 @@ This project flags outliers of GDHI data at LSOA levels and adjusts the outlier 
    pre-commit run -a
    ```
 
-## Running
+## 🚀 Running
 
 1. **Config settings `config/config.toml`:**
     - Check settings in config/config.toml to ensure pipeline runs as intended.
