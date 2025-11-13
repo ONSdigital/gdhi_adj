@@ -1,11 +1,9 @@
-import numpy as np
 import pandas as pd
 import pytest
 
 from gdhi_adj.adjustment.reformat_adjustment import (
     reformat_adjust_col,
     reformat_year_col,
-    to_int_list,
 )
 
 
@@ -22,41 +20,6 @@ def test_reformat_adjust_col():
     })
 
     pd.testing.assert_frame_equal(result_df, expected_df)
-
-
-def test_to_int_list():
-    """Test various inputs to to_int_list behave as implemented.
-
-    Note: the function treats list-like inputs differently from scalar
-    inputs. For scalar empty or 'nan' strings it returns an empty list; for
-    list-like inputs it returns an empty list when all items are NA.
-    """
-
-    # comma-separated string
-    assert to_int_list("2010,2011, 2012") == [2010, 2011, 2012]
-
-    # list of strings
-    assert to_int_list(["2010", "2011"]) == [2010, 2011]
-
-    # list containing numeric types
-    assert to_int_list([2010, 2011]) == [2010, 2011]
-
-    # numpy array
-    assert to_int_list(np.array(["2010", "2011"])) == [2010, 2011]
-
-    # list with None/NaN items -> they are skipped
-    assert to_int_list(["2010", None, float("nan"), "2012"]) == [2010, 2012]
-
-    # float tokens should be converted via int(float(token))
-    assert to_int_list("2010.0, 2011.0") == [2010, 2011]
-
-    # empty string and explicit nan scalar return None (per current impl)
-    assert to_int_list("") == []
-    assert to_int_list(float("nan")) == []
-
-    # invalid token raises ValueError
-    with pytest.raises(ValueError):
-        to_int_list("20a,2010")
 
 
 class TestReformatYearCol:

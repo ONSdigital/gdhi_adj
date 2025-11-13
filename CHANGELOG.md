@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Adjustment values now determined by interpolation/ extrapolation.
 - Vectorised applying adjustment instead of for loop.
+- GDHIDAP-60: years_to_adjust to accept sequential or end years.
 
 ### Deprecated
 
