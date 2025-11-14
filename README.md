@@ -60,13 +60,15 @@ ready for publication. The diagram below summarises this two-stage process.
 
 ```mermaid
 flowchart TD
-    subgraph A["PySpark GDHI Production Pipeline (Internal Big-Data Python RAP)"]
+    subgraph A["PySpark GDHI Production Pipeline"]
+        A_info["(Internal Big-Data Python RAP)"]:::note
         A1[Preprocessing] --> A2[Imputation] --> A3[Disclosure Control] --> A4["Apportionment using Admin Proxies"]
     end
 
     A4 -->|Initial LSOA Estimates| B
 
-    subgraph B["gdhi-adj Adjustments Pipeline\n(Open-Source pandas/NumPy RAP)"]
+    subgraph B["gdhi-adj Adjustments Pipeline"]
+        B_info["(Open-Source pandas/NumPy RAP)"]:::note
         B1[Outlier Detection] --> B2[Rules-Based Adjustment] --> B3[Preserve LA Totals Exactly]
     end
 
