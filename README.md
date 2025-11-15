@@ -160,7 +160,7 @@ model is constrained by its inputs.
 
 A key driver of this smoothing is the **granularity of the proxy data**.
 For instance, the **GDHI apportionment** for a component like rental income might use
-'total number of dwellings' as its LSOA-level proxy. This proxy *cannot*
+"total number of dwellings" as its LSOA-level proxy. This proxy *cannot*
 differentiate between a high-rent luxury apartment and a low-rent social
 housing unit *within that same LSOA*.
 
