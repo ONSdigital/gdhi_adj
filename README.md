@@ -142,6 +142,36 @@ implausible LSOA estimates that look precise but are actually just statistical a
 The risk is that sharp year-on-year fluctuations may not reflect a true change in
 economic fortunes but rather an artifact of noise in one of the proxy indicators.
 
+### Inherent Property: Spatial Smoothing
+
+In addition to noisy shares, the estimates also display an inherent statistical
+property known as **spatial smoothing**. This occurs because the **apportionment process**
+itself naturally averages out local extremes, leading to smaller measured differences
+between neighbouring areas. Like noisy-shares, this is not a flaw to be corrected
+but an unavoidable consequence of the apportionment methodology and the
+limits of the available proxy data.
+
+In reality, incomes can differ sharply even between adjacent neighbourhoods -- for example,
+a high-income apartment complex next to a social housing estate. The true variation can
+be substantial. However, when producing the LSOA-level GDHI estimates, the apportionment
+model is constrained by its inputs.
+
+A key driver of this smoothing is the **granularity of the proxy data**.
+For instance, the **GDHI apportionment** for a component like rental income might use
+'total number of dwellings' as its LSOA-level proxy. This proxy *cannot*
+differentiate between a high-rent luxury apartment and a low-rent social
+housing unit *within that same LSOA*.
+
+The model must therefore apply a single, *average* share of the LA's total rental
+income to that LSOA based on its dwelling count, effectively smoothing over these
+sharp, real-world differences.
+
+The practical implication is that the dataset still successfully identifies which areas
+are relatively richer or poorer. However, it may slightly **understate the true scale of inequality**
+between neighbouring places that differ sharply in reality. We do not adjust the estimates
+to remove this smoothing -- it is simply a natural statistical behaviour of this
+apportionment method that analysts should be aware of when interpreting the results.
+
 ### Addressing the "Raw Data" Misconception
 
 This reality addresses a common misconception: that statistical production should
