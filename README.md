@@ -16,7 +16,7 @@ monitor regional inequalities.
 There is growing demand for more granular [subnational statistics](https://www.ons.gov.uk/aboutus/whatwedo/programmesandprojects/onscentres/centreforsubnationalanalysis)
 to support evidence-based policymaking, including local planning, targeted investment, and
 the UK's broader [Levelling Up agenda](https://www.gov.uk/government/publications/levelling-up-the-united-kingdom).
-While the ONS publishes GDHI annually at the local authority (LA) level,
+While the ONS publishes GDHI annually at the Local Authority (LA) level,
 many users require neighbourhood-level insights.
 
 To meet this need, the ONS produces experimental small-area GDHI by apportioning
