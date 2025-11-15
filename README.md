@@ -56,8 +56,8 @@ applies a transparent, rules-based **constrained statistical editing** process.
 This refinement operates on a core methodological principle: the
 high-level **Local Authority (LA) total is treated as a fixed "anchor."**
 This establishes a clear hierarchy of trust, where the LA-level total is
-accepted as statistically robust and correct, while the *intra-LA distribution* (
-the apportionment to LSOAs) is treated as potentially flawed and in need of refinement.
+accepted as statistically robust and correct, while the *intra-LA distribution* (the
+apportionment to LSOAs) is treated as potentially flawed and in need of refinement.
 
 Therefore, the pipeline's adjustments are a **constrained re-distribution**. When an
 LSOA outlier is corrected (e.g., its value is reduced), that same amount is **not**
