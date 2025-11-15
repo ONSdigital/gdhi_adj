@@ -55,9 +55,16 @@ applies a transparent, rules-based **constrained statistical editing** process.
 
 This refinement operates on a core methodological principle: the
 high-level **Local Authority (LA) total is treated as a fixed "anchor."**
-This establishes a clear hierarchy of trust, where the LA-level total is
-accepted as statistically robust and correct, while the *intra-LA distribution* (the
-apportionment to LSOAs) is treated as potentially flawed and in need of refinement.
+To maintain **National Accounts integrity**, estimates must satisfy the
+principle of **additivity and coherence**, meaning that all lower-level
+geographic aggregates (LSOAs) must sum exactly to their parent LA total.
+This is consistent with standard statistical approaches such as
+**benchmarking** and **constrained estimation**, where trusted control
+totals are preserved and only the within-area distribution is adjusted.
+This creates a clear hierarchy of trust: the LA-level total is accepted as
+statistically robust and fixed, while the *intra-LA distribution* (the
+apportionment to LSOAs) is treated as more uncertain and therefore subject
+to refinement.
 
 Therefore, the pipeline's adjustments are a **constrained re-distribution**. When an
 LSOA outlier is corrected (e.g., its value is reduced), that same amount is **not**
@@ -66,8 +73,11 @@ other LSOAs *within that same LA*. This "zero-sum" approach ensures that the fin
 refined LSOA estimates perfectly sum back to the original, unchanged LA totals.
 
 The result is a reliable and statistically consistent set of GDHI statistics at
-the LSOA level, ready for publication. The diagram below summarises this
-two-stage process.
+the LSOA level, ready for publication.
+
+The diagram below shows where the `gdhi-adj` module sits within the wider GDHI
+production workflow, from the initial `PySpark` pipeline through to the final
+publishable LSOA dataset.
 
 ```mermaid
 flowchart TD
