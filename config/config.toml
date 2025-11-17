@@ -23,6 +23,8 @@ transaction_name = "Imputed Social Contributions Received"
 sas_code_filter = "G866BTR"
 cord_code_filter = "D75"
 credit_debit_filter = "D"
+# Mapping settings
+mapping = true # Set to true if you want to run mapping from LAU to LAD
 # CORD preparation settings
 
 [pipeline_settings]
@@ -88,14 +90,14 @@ output_filename = "gdhi_manual_adj_adjusted_output.csv" #Change name of file her
 
 [mapping]
 map_lau_lad = true
-aggregate_to_lad = false
-data_dir = "D:/data/gdhi_adj/"
-mapper_dir = "D:/data/gdhi_adj/"
+aggregate_to_lad = true
+data_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Adjustment/"
+mapper_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Mappers/"
 data_file = "test_manual_adj_adjustments_output.csv"
-output_dir =  "D:/data/gdhi_adj/"
-output_file = "test_manual_adj_adjustments_output_lad_not_aggregates.csv"
-lau_lad_file = "D:/data/gdhi_adj/itl_2022.csv"
-lau_lad_schema_name = "lau_lad_schema.toml"
+lau_lad_mapper_file = "LAD_(April_2025)_to_LAU1_to_ITL3_to_ITL2_to_ITL1_(January_2025)_Lookup_in_the_UK.csv"
+output_dir =  "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Mapping/"
+output_file = "manual_adj_adjustments_output_lad.csv"
+lau_lad_schema_name = "input_lau_lad_schema.toml"
 data_lad_code = "lad_code"
 data_lad_name = "lad_name"
 

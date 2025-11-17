@@ -1,11 +1,11 @@
 """Mapping functions for local authority units mapped to LADs."""
 
+import os
 import re
-from os.path import join
 
 import pandas as pd
 
-from gdhi_adj.utils.helpers import load_toml_config, read_with_schema
+from gdhi_adj.utils.helpers import read_with_schema
 from gdhi_adj.utils.logger import GDHI_adj_logger
 
 # Initialize logger
@@ -16,8 +16,11 @@ logger = GDHI_adj_LOGGER.logger
 def load_data(config, df=pd.DataFrame()):
     if df.empty:
         logger.info("Input dataframe is empty.")
-        data_file_path = join(
-            config["mapping"]["data_dir"], config["mapping"]["data_file"]
+        data_file_path = os.path.join(
+            "C:/Users",
+            os.getlogin(),
+            config["mapping"]["data_dir"],
+            config["mapping"]["data_file"],
         )
         logger.info(f"Reading data from {data_file_path}")
         df = pd.read_csv(data_file_path)
@@ -59,10 +62,13 @@ def rename_s30_to_lad(config, df):
 
 
 def load_mapper(config):
-    mapper_file_path = join(
-        config["mapping"]["mapper_dir"], config["mapping"]["lau_lad_file"]
+    mapper_file_path = os.path.join(
+        "C:/Users/",
+        os.getlogin(),
+        config["mapping"]["mapper_dir"],
+        config["mapping"]["lau_lad_mapper_file"],
     )
-    mapper_schema_path = join(
+    mapper_schema_path = os.path.join(
         config["pipeline_settings"]["schema_path"],
         config["mapping"]["lau_lad_schema_name"],
     )
@@ -84,8 +90,6 @@ def clean_validate_mapper(mapper_df):
 
     mapper_df = mapper_df.drop_duplicates()
 
-    print(mapper_df.columns)
-
     return mapper_df, True
 
 
@@ -99,7 +103,7 @@ def join_mapper(df, mapper_df):
     null_series = result_df["mapper_lad_code"].isna()
     cond = null_series.any()
     if cond:
-        logger.info("There are null LADs:/n{result_df[null_series]}")
+        logger.info(f"There are null LADs: {result_df[null_series]}")
     result_df = result_df.drop(columns=["data_lau_code", "data_lau_name"])
     return result_df
 
@@ -136,15 +140,24 @@ def reformat(df, original_columns):
 
 def save_output(config, df):
     output_dir = config["mapping"]["output_dir"]
-    output_file = config["mapping"]["output_file"]
-    output_path = join(output_dir, output_file)
+    output_file = (
+        config["user_settings"]["output_data_prefix"]
+        + "_"
+        + config["mapping"]["output_file"]
+    )
+    output_path = os.path.join(
+        "C:/Users/", os.getlogin(), output_dir, output_file
+    )
+    if config["mapping"]["aggregate_to_lad"]:
+        output_path = output_path.replace(".csv", "_aggregated.csv")
+    else:
+        output_path = output_path.replace(".csv", "_not_aggregated.csv")
     logger.info(f"Saving output to {output_path}")
     df.to_csv(output_path, index=None)
 
 
-def lau_lad_main(config_path="config/config.toml", df=pd.DataFrame()):
+def run_mapping(config: dict, df=pd.DataFrame()):
     logger.info("Started mapping LAUs to LADs")
-    config = load_toml_config(config_path)
 
     # Load data file, if it is not provided as a DataFrame
     df = load_data(config)
@@ -174,4 +187,4 @@ def lau_lad_main(config_path="config/config.toml", df=pd.DataFrame()):
 
 
 if __name__ == "__main__":
-    lau_lad_main()
+    run_mapping()

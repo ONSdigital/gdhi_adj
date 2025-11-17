@@ -4,6 +4,7 @@ import time
 
 from gdhi_adj.adjustment.run_adjustment import run_adjustment
 from gdhi_adj.cord_preparation.run_cord_prep import run_cord_preparation
+from gdhi_adj.mapping.mapping_main import run_mapping
 from gdhi_adj.preprocess.run_preprocess import run_preprocessing
 from gdhi_adj.utils.helpers import load_toml_config
 from gdhi_adj.utils.logger import GDHI_adj_logger
@@ -30,6 +31,9 @@ def run_pipeline(config_path):
 
         if config["user_settings"]["adjustment"]:
             run_adjustment(config)
+
+        if config["user_settings"]["mapping"]:
+            run_mapping(config)
 
         if config["user_settings"]["cord_preparation"]:
             run_cord_preparation(config)
