@@ -148,7 +148,11 @@ def run_preprocessing(config: dict) -> None:
         group_col="lsoa_code",
         val_col="uncon_gdhi",
     )
-    df = flag_rollback_years(df)
+    df = flag_rollback_years(
+        df,
+        rollback_year_start=config["user_settings"]["rollback_year_start"],
+        rollback_year_end=config["user_settings"]["rollback_year_end"],
+    )
 
     # Assign prefixes
     backward_prefix = "bkwd"

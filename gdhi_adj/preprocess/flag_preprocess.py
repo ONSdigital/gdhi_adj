@@ -4,13 +4,17 @@ import numpy as np
 import pandas as pd
 
 
-def flag_rollback_years(df: pd.DataFrame) -> pd.DataFrame:
+def flag_rollback_years(
+    df: pd.DataFrame, rollback_year_start: int, rollback_year_end: int
+) -> pd.DataFrame:
     """
     Flags years where the GDHI has rolled back from future years.
     Typically 2010-2014 has 2015 data copied to them as it is missing.
 
     Args:
         df (pd.DataFrame): The input DataFrame.
+        rollback_year_start (int): The start year for rollback flagging.
+        rollback_year_end (int): The end year for rollback flagging.
 
     Returns:
         pd.DataFrame: DataFrame with an additional 'rollback_flag' column.
@@ -19,7 +23,7 @@ def flag_rollback_years(df: pd.DataFrame) -> pd.DataFrame:
     # 2015 is included due to forward percentage change column
     rollback_mask = (
         (df["backward_pct_change"] == 1.0) | (df["forward_pct_change"] == 1.0)
-    ) & (df["year"].between(2010, 2014))
+    ) & (df["year"].between(rollback_year_start, rollback_year_end))
 
     # Create a new column 'rollback_flag' based on the mask
     df["rollback_flag"] = np.where(rollback_mask, True, False)
