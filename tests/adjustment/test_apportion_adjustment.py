@@ -8,29 +8,48 @@ from gdhi_adj.adjustment.apportion_adjustment import (
 )
 
 
-def test_calc_non_outlier_proportions():
-    """Tests for the calc_non_outlier_proportions function."""
-    df = pd.DataFrame({
-        "lad_code": ["E01", "E01", "E01", "E01"],
-        "year": [2002, 2002, 2002, 2003],
-        "con_gdhi": [5.0, 8.0, 10.0, 15.0],
-        "year_to_adjust": [
-            [2001, 2002], [2001, 2002], [2001, 2002], [2001, 2002],
-        ],
-    })
+class TestCalcNoneOutlierProportions():
+    """Test suite for calc_non_outlier_proportions function."""
+    def test_calc_non_outlier_proportions_success(self):
+        """Tests for the calc_non_outlier_proportions function."""
+        df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2",],
+            "lad_code": ["E01", "E01", "E01", "E01", "E01", "E01"],
+            "year": [2000, 2000, 2001, 2001, 2002, 2002],
+            "con_gdhi": [3.0, 9.0, 8.0, 12.0, 10.0, 15.0],
+            "year_to_adjust": [[2001], [], [2001], [], [2001], []],
+        })
 
-    result_df = calc_non_outlier_proportions(df)
+        result_df = calc_non_outlier_proportions(df)
 
-    expected_df = pd.DataFrame({
-        "lad_code": ["E01", "E01", "E01", "E01"],
-        "year": [2002, 2002, 2002, 2003],
-        "con_gdhi": [5.0, 8.0, 10.0, 15.0],
-        "year_to_adjust": [
-            [2001, 2002], [2001, 2002], [2001, 2002], [2001, 2002],
-        ],
-    })
+        expected_df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2",],
+            "lad_code": ["E01", "E01", "E01", "E01", "E01", "E01"],
+            "year": [2000, 2000, 2001, 2001, 2002, 2002],
+            "con_gdhi": [3.0, 9.0, 8.0, 12.0, 10.0, 15.0],
+            "year_to_adjust": [[2001], [], [2001], [], [2001], []],
+            "lad_total": [12.0, 12.0, 20.0, 20.0, 25.0, 25.0],
+            "non_outlier_total": [12.0, 12.0, None, 12.0, 25.0, 25.0],
+            "gdhi_proportion": [0.25, 0.75, None, 1.0, 0.4, 0.6],
+        })
 
-    pd.testing.assert_frame_equal(result_df, expected_df)
+        pd.testing.assert_frame_equal(result_df, expected_df)
+
+    def test_calc_non_outlier_proportions_zero_error(self):
+        """Tests for the calc_non_outlier_proportions function."""
+        df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2"],
+            "lad_code": ["E01", "E01"],
+            "year": [2001, 2001],
+            "con_gdhi": [8.0, 0.0],
+            "year_to_adjust": [[2001], []],
+        })
+
+        with pytest.raises(
+            ValueError,
+            match="Non-outlier total check failed:"
+        ):
+            calc_non_outlier_proportions(df)
 
 
 class TestApportionAdjustment:
@@ -51,7 +70,18 @@ class TestApportionAdjustment:
         "adjustment_val": [0.6, 0.6, 0.6, None],
     })
 
-    result_df = apportion_adjustment(df)
+    imputed_df = pd.DataFrame({
+        "lsoa_code": ["E1", "E2", "E3", "E1"],
+        "lad_code": ["E01", "E01", "E01", "E01"],
+        "year": [2002, 2002, 2002, 2003],
+        "con_gdhi": [5.0, 8.0, 10.0, 15.0],
+        # imputed_gdhi only present for E1 2003
+        "imputed_gdhi": [None, 7.4, None, None],
+        # adjustment_val is set for E1 (will be apportioned), None for E2
+        "adjustment_val": [0.6, 0.6, 0.6, None],
+    })
+
+    result_df = apportion_adjustment(df, imputed_df)
 
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E2", "E3", "E1"],

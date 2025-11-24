@@ -1,9 +1,11 @@
 import numpy as np
+import pandas as pd
 import pytest
 
 from gdhi_adj.utils.transform_helpers import (
     ensure_list,
     increment_until_not_in,
+    sum_match_check,
     to_int_list,
 )
 
@@ -78,3 +80,58 @@ def test_increment_until_not_in():
     assert increment_until_not_in(2006, [2007, 2008], 2005, False) == 2006
     assert increment_until_not_in(2005, [2005], 2005, False) == 2004
     assert increment_until_not_in(2004, [2005], 2005, False) == 2004
+
+
+class TestSumMatchCheck():
+    """Test suite for sum_match_check function."""
+    def test_sum_match_check_success_and_tolerance(self):
+        """Test the sum_match_check function computes values without raising
+        error, when matches are exact and when the difference is within
+        tolerance."""
+        # exact match case
+        df_exact = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E3", "E1"],
+            "lad_code": ["E01", "E01", "E01", "E01"],
+            "year": [2001, 2001, 2001, 2002],
+            "unadjusted": [10.0, 20.0, 30.0, 40.0],
+            "adjusted": [10.0, 20.0, 30.0, 40.0],
+        })
+
+        # should not raise
+        sum_match_check(
+            df_exact.copy(), ["lad_code", "year"], "unadjusted", "adjusted"
+        )
+
+        # within-tolerance case: per-group sum differs by less than default
+        # tolerance
+        df_tol = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E3", "E1"],
+            "lad_code": ["E01", "E01", "E01", "E01"],
+            "year": [2001, 2001, 2001, 2002],
+            "unadjusted": [10.0, 20.0, 30.0, 40.0],
+            # make total adjusted differ by 5e-7 (less than default 1e-6)
+            "adjusted": [10.0, 20.0, 30.0, 40.0000005],
+        })
+
+        # should not raise
+        sum_match_check(
+            df_tol.copy(), ["lad_code", "year"], "unadjusted", "adjusted"
+        )
+
+    def test_sum_match_check_failure_raises(self):
+        """sum_match_check should raise ValueError when group sums differ
+        beyond tolerance."""
+
+        df_fail = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E3", "E1"],
+            "lad_code": ["E01", "E01", "E01", "E01"],
+            "year": [2001, 2001, 2001, 2002],
+            "unadjusted": [10.0, 20.0, 30.0, 40.0],
+            # make total adjusted differ by 1e-4 (more than default 1e-6)
+            "adjusted": [10.0, 20.0, 30.0, 40.0001],
+        })
+
+        with pytest.raises(ValueError):
+            sum_match_check(
+                df_fail.copy(), ["lad_code", "year"], "unadjusted", "adjusted"
+            )

@@ -199,10 +199,11 @@ def run_adjustment(config: dict) -> None:
     logger.info("Calculating non-outlier proportions")
     df = calc_non_outlier_proportions(df)
 
-    logger.info("Apportioning adjustment values to all years")
+    logger.info("Apportioning adjustment values to all LSOAs")
     df = apportion_adjustment(df, imputed_df)
 
     if config["user_settings"]["accept_negatives"] is False:
+        logger.info("Apportioning negative adjusted values")
         df = apportion_negative_adjustment(df)
 
     logger.info("Saving interim data")
@@ -232,7 +233,6 @@ def run_adjustment(config: dict) -> None:
         columns=[
             "con_gdhi",
             "imputed_gdhi",
-            "imputed_diff",
             "adjustment_val",
             "lsoa_count",
         ]

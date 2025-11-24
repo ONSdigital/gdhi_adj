@@ -30,6 +30,22 @@ def calc_non_outlier_proportions(df: pd.DataFrame) -> pd.DataFrame:
         df[~mask].groupby(["lad_code", "year"])["con_gdhi"].transform("sum")
     )
 
+    # Guard: if any non_outlier_total is zero this will cause div-by-zero
+    # when calculating proportions — raise a clear error with offending groups.
+    zero_mask = df["non_outlier_total"] == 0
+    if zero_mask.any():
+        bad_groups = (
+            df.loc[zero_mask, ["lad_code", "year"]]
+            .drop_duplicates()
+            .sort_values(["lad_code", "year"])  # deterministic order
+        )
+        # convert to a compact list of tuples for a friendly error message
+        bad_list = [tuple(x) for x in bad_groups.values.tolist()]
+        raise ValueError(
+            "Non-outlier total check failed: found zero non_outlier_total for "
+            f"groups: {bad_list}"
+        )
+
     df["gdhi_proportion"] = df["con_gdhi"] / df["non_outlier_total"]
 
     return df
@@ -69,8 +85,9 @@ def apportion_adjustment(
 
     # Adjustment check: sums by (lad_code, year) should match pre- and post-
     # adjustment
+    adjusted_sum_check_df = adjusted_df.copy()
     sum_match_check(
-        adjusted_df,
+        adjusted_sum_check_df,
         grouping_cols=["lad_code", "year"],
         unadjusted_col="con_gdhi",
         adjusted_col="adjusted_con_gdhi",
@@ -143,8 +160,9 @@ def apportion_negative_adjustment(df: pd.DataFrame) -> pd.DataFrame:
 
     # Adjustment check: sums by (lad_code, year) should match pre- and post-
     # adjustment
+    adjusted_sum_check_df = adjusted_df.copy()
     sum_match_check(
-        adjusted_df,
+        adjusted_sum_check_df,
         grouping_cols=["lad_code", "year"],
         unadjusted_col="con_gdhi",
         adjusted_col="adjusted_con_gdhi",
