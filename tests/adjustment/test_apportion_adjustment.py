@@ -54,49 +54,49 @@ class TestCalcNoneOutlierProportions():
 
 class TestApportionAdjustment:
     """Test suite for apportion_adjustment function."""
-    def test_apportion_adjustment_base(self):
+    def test_apportion_adjustment_success(self):
         """Test apportion_adjustment computes year_count and adjusted_con_gdhi
         correctly and returns the full dataframe sorted.
         """
+        df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E1", "E2"],
+            "lad_code": ["E01", "E01", "E01", "E01"],
+            "year": [2000, 2000, 2001, 2001],
+            "con_gdhi": [3.0, 9.0, 8.0, 12.0],
+            "lad_total": [12.0, 12.0, 20.0, 20.0],
+            "gdhi_proportion": [0.25, 0.75, None, 1.0],
+        })
 
-    df = pd.DataFrame({
-        "lsoa_code": ["E1", "E2", "E3", "E1"],
-        "lad_code": ["E01", "E01", "E01", "E01"],
-        "year": [2002, 2002, 2002, 2003],
-        "con_gdhi": [5.0, 8.0, 10.0, 15.0],
-        # imputed_gdhi only present for E1 2003
-        "imputed_gdhi": [None, 7.4, None, None],
-        # adjustment_val is set for E1 (will be apportioned), None for E2
-        "adjustment_val": [0.6, 0.6, 0.6, None],
-    })
+        imputed_df = pd.DataFrame({
+            "lsoa_code": ["E1"],
+            "year": [2001],
+            "con_gdhi": [12.0],
+            "year_to_adjust": [[2001]],
+            "rollback_flag": [True],
+            "prev_safe_year": [2000],
+            "prev_con_gdhi": [10.0],
+            "next_safe_year": [2003],
+            "next_con_gdhi": [40.0],
+            "imputed_gdhi": [5.0],
+        })
 
-    imputed_df = pd.DataFrame({
-        "lsoa_code": ["E1", "E2", "E3", "E1"],
-        "lad_code": ["E01", "E01", "E01", "E01"],
-        "year": [2002, 2002, 2002, 2003],
-        "con_gdhi": [5.0, 8.0, 10.0, 15.0],
-        # imputed_gdhi only present for E1 2003
-        "imputed_gdhi": [None, 7.4, None, None],
-        # adjustment_val is set for E1 (will be apportioned), None for E2
-        "adjustment_val": [0.6, 0.6, 0.6, None],
-    })
+        result_df = apportion_adjustment(df, imputed_df)
 
-    result_df = apportion_adjustment(df, imputed_df)
+        expected_df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E1", "E2"],
+            "lad_code": ["E01", "E01", "E01", "E01"],
+            "year": [2000, 2000, 2001, 2001],
+            "con_gdhi": [3.0, 9.0, 8.0, 12.0],
+            "lad_total": [12.0, 12.0, 20.0, 20.0],
+            "gdhi_proportion": [0.25, 0.75, None, 1.0],
+            "imputed_gdhi": [None, None, 5.0, None],
+            "adjusted_total": [12.0, 12.0, 15.0, 15.0],
+            "adjusted_con_gdhi": [3.0, 9.0, 5.0, 15.0],
+        })
 
-    expected_df = pd.DataFrame({
-        "lsoa_code": ["E1", "E2", "E3", "E1"],
-        "lad_code": ["E01", "E01", "E01", "E01"],
-        "year": [2002, 2002, 2002, 2003],
-        "con_gdhi": [5.0, 8.0, 10.0, 15.0],
-        "imputed_gdhi": [None, 7.4, None, None],
-        "adjustment_val": [0.6, 0.6, 0.6, None],
-        "lsoa_count": [3, 3, 3, 1],
-        "adjusted_con_gdhi": [5.2, 7.6, 10.2, 15.0],
-    })
-
-    pd.testing.assert_frame_equal(
-        result_df, expected_df, check_dtype=False
-    )
+        pd.testing.assert_frame_equal(
+            result_df, expected_df, check_dtype=False
+        )
 
 
 class TestApportionNegativeAdjustment:
