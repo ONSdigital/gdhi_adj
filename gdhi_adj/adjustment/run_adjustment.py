@@ -7,6 +7,7 @@ import pandas as pd
 from gdhi_adj.adjustment.apportion_adjustment import (
     apportion_adjustment,
     apportion_negative_adjustment,
+    apportion_rollback_years,
     calc_non_outlier_proportions,
 )
 from gdhi_adj.adjustment.calc_adjustment import (
@@ -205,6 +206,9 @@ def run_adjustment(config: dict) -> None:
     if config["user_settings"]["accept_negatives"] is False:
         logger.info("Apportioning negative adjusted values")
         df = apportion_negative_adjustment(df)
+
+    logger.info("Apportion rollback years.")
+    df = apportion_rollback_years(df)
 
     logger.info("Saving interim data")
     qa_df = pd.DataFrame(

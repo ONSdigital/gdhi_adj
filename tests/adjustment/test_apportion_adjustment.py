@@ -4,6 +4,7 @@ import pytest
 from gdhi_adj.adjustment.apportion_adjustment import (
     apportion_adjustment,
     apportion_negative_adjustment,
+    apportion_rollback_years,
     calc_non_outlier_proportions,
 )
 
@@ -200,3 +201,83 @@ class TestApportionNegativeAdjustment:
             match="Negative value check failed:"
         ):
             apportion_negative_adjustment(df)
+
+
+class TestApportionRollbackYears:
+    """Test suite for apportion_rollback_years function."""
+
+    def test_apportion_rollback_years_basic(self):
+        """Test apportion_rollback_years correctly calculates rollback_con_gdhi
+        for rollback_flag rows.
+        """
+        df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2"],
+            "lad_code": [
+                "E01", "E01", "E01", "E01", "E01", "E01", "E01", "E01"
+            ],
+            "year": [2014, 2014, 2015, 2015, 2016, 2016, 2017, 2017],
+            "con_gdhi": [5.0, 15.0, 15.0, 15.0, 16.0, 24.0, 15.0, 35.0],
+            "lad_total": [20.0, 20.0, 30.0, 30.0, 40.0, 40.0, 50.0, 50.0],
+            "readjusted_con_gdhi": [
+                6.0, 14.0, 14.0, 16.0, 17.0, 23.0, 16.0, 34.0
+            ],
+            "rollback_flag": [
+                True, True, True, True, True, True, False, False
+            ],
+        })
+
+        result_df = apportion_rollback_years(df)
+
+        expected_df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E1", "E2", "E1", "E2", "E1", "E2"],
+            "lad_code": [
+                "E01", "E01", "E01", "E01", "E01", "E01", "E01", "E01"
+            ],
+            "year": [2014, 2014, 2015, 2015, 2016, 2016, 2017, 2017],
+            "con_gdhi": [5.0, 15.0, 15.0, 15.0, 16.0, 24.0, 15.0, 35.0],
+            "lad_total": [20.0, 20.0, 30.0, 30.0, 40.0, 40.0, 50.0, 50.0],
+            "readjusted_con_gdhi": [
+                6.0, 14.0, 14.0, 16.0, 17.0, 23.0, 16.0, 34.0
+            ],
+            "rollback_flag": [
+                True, True, True, True, True, True, False, False
+            ],
+            "rollback_con_gdhi": [
+                8.5, 11.5, 12.75, 17.25, 17.0, 23.0, 16.0, 34.0
+            ],
+        })
+
+        pd.testing.assert_frame_equal(
+            result_df, expected_df, rtol=0.001
+        )
+
+    def test_apportion_rollback_years_no_rollback(self):
+        """Test apportion_rollback_years returns unchanged readjusted_con_gdhi
+        when rollback_flag is False for all rows.
+        """
+        df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E1", "E2"],
+            "lad_code": ["E01", "E01", "E01", "E01"],
+            "year": [2014, 2014, 2016, 2016],
+            "con_gdhi": [5.0, 15.0, 6.0, 14.0],
+            "lad_total": [20.0, 20.0, 20.0, 20.0],
+            "readjusted_con_gdhi": [5.0, 15.0, 6.0, 14.0],
+            "rollback_flag": [False, False, False, False],
+        })
+
+        result_df = apportion_rollback_years(df)
+
+        expected_df = pd.DataFrame({
+            "lsoa_code": ["E1", "E2", "E1", "E2"],
+            "lad_code": ["E01", "E01", "E01", "E01"],
+            "year": [2014, 2014, 2016, 2016],
+            "con_gdhi": [5.0, 15.0, 6.0, 14.0],
+            "lad_total": [20.0, 20.0, 20.0, 20.0],
+            "readjusted_con_gdhi": [5.0, 15.0, 6.0, 14.0],
+            "rollback_flag": [False, False, False, False],
+            "rollback_con_gdhi": [5.0, 15.0, 6.0, 14.0],
+        })
+
+        pd.testing.assert_frame_equal(
+            result_df, expected_df, check_dtype=False
+        )

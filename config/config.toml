@@ -23,8 +23,7 @@ sas_code_filter = "G866BTR"
 cord_code_filter = "D75"
 credit_debit_filter = "D"
 accept_negatives = false
-# Set to true to accept negative values and not run
-# apportion_negative_adjustment
+# Set to true to keep negative values and not run apportion_negative_adjustment
 
 [pipeline_settings]
 schema_path = "config/schemas/"

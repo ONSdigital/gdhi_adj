@@ -159,3 +159,56 @@ def apportion_negative_adjustment(df: pd.DataFrame) -> pd.DataFrame:
     return adjusted_df.sort_values(by=["lad_code", "year"]).reset_index(
         drop=True
     )
+
+
+def apportion_rollback_years(df: pd.DataFrame) -> pd.DataFrame:
+    """Continue to apportion the adjustments for years that are flagged as
+    rollback years.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing all data including adjusted
+        and rollback years.
+
+    Returns:
+        pd.DataFrame: DataFrame with reapportioned values for rollback years.
+    """
+    adjusted_df = df.copy()
+    max_rollback_year = adjusted_df[adjusted_df["rollback_flag"]]["year"].max()
+
+    # Get the last rollback year's gdhi per lsoa and sum per lad
+    lsoa_max_rollback_gdhi = (
+        adjusted_df[adjusted_df["year"] == max_rollback_year]
+        .groupby("lsoa_code")["readjusted_con_gdhi"]
+        .min()
+    )
+    lad_max_rollback_sums = (
+        adjusted_df[adjusted_df["year"] == max_rollback_year]
+        .groupby("lad_code")["readjusted_con_gdhi"]
+        .sum()
+    )
+
+    # Map back to dataframe and calculate
+    adjusted_df["rollback_con_gdhi"] = np.where(
+        adjusted_df["rollback_flag"],
+        (
+            adjusted_df["lad_total"]
+            * (
+                adjusted_df["lsoa_code"].map(lsoa_max_rollback_gdhi)
+                / adjusted_df["lad_code"].map(lad_max_rollback_sums)
+            )
+        ),
+        adjusted_df["readjusted_con_gdhi"],
+    )
+
+    # Adjustment check: sums by (lad_code, year) should match pre- and post-
+    # adjustment
+    adjusted_sum_check_df = adjusted_df.copy()
+    sum_match_check(
+        adjusted_sum_check_df,
+        grouping_cols=["lad_code", "year"],
+        unadjusted_col="con_gdhi",
+        adjusted_col="rollback_con_gdhi",
+        sum_tolerance=0.000001,
+    )
+
+    return adjusted_df
