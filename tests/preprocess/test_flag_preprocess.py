@@ -15,7 +15,9 @@ def test_flag_rollback_years():
         "forward_pct_change": [1.0, 1.0, 1.0, 1.0, 1.05, 0.95]
     })
 
-    result_df = flag_rollback_years(df)
+    result_df = flag_rollback_years(
+        df, rollback_year_start=2010, rollback_year_end=2014
+    )
 
     expected_df = pd.DataFrame({
         "lsoa_code": ["E1", "E1", "E1", "E2", "E2", "E2"],

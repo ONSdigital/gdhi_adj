@@ -5,6 +5,8 @@ start_year = 2010
 end_year = 2023
 output_data = true
 output_data_prefix = "test"
+rollback_year_start = 2010
+rollback_year_end = 2014
 # Preprocessing settings
 preprocessing = false # Set to true if you want to run preprocessing
 zscore_calculation = true # Set to true if you want to run z-score calculation
@@ -20,6 +22,8 @@ adjustment = true # Set to true if you want to run manual adjustment
 sas_code_filter = "G866BTR"
 cord_code_filter = "D75"
 credit_debit_filter = "D"
+accept_negatives = false
+# Set to true to keep negative values and not run apportion_negative_adjustment
 
 [pipeline_settings]
 schema_path = "config/schemas/"
@@ -47,8 +51,8 @@ output_filename = "manual_adj_preprocessing_output.csv" #Change name of file her
 #sharepoint site, go into the subfolder 'GDHI' and open '2025_manual_adjustments'
 #and click the 'sync' button to sync to your local OneDrive.
 input_adj_file_path = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/PowerBI_Tool/gdhi_manual_adj_preprocessed_SBRSS_output_test_analyst_assessment_DUMMY.csv"
-input_constrained_file_path = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/DAP_Exported/GDHI_Preproc_HMRC_SBRSS_Constrained.csv"
-input_unconstrained_file_path = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/DAP_Exported/GDHI_Preproc_HMRC_SBRSS_Unconstrained.csv"
+input_constrained_file_path = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/DAP_Exported_311025/GDHI_Disclosure_HMRC_COE_ESC_Constrained_names_fixed.csv"
+input_unconstrained_file_path = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/DAP_Exported_311025/GDHI_Disclosure_HMRC_COE_ESC_Unconstrained_names_fixed.csv"
 output_dir = "/Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Adjustment/"
 interim_filename =  "manual_adj_adjustments_interim_QA.csv" #Change name of file here
 output_filename = "manual_adj_adjustments_output.csv" #Change name of file here

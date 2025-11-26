@@ -1,9 +1,11 @@
 """Module for joining adjustment data in the gdhi_adj project."""
 
-from typing import Any, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
+
+from gdhi_adj.utils.transform_helpers import to_int_list
 
 
 def reformat_adjust_col(df: pd.DataFrame) -> pd.DataFrame:
@@ -23,47 +25,6 @@ def reformat_adjust_col(df: pd.DataFrame) -> pd.DataFrame:
     df["adjust"] = df["adjust"].astype("bool")
 
     return df
-
-
-def to_int_list(cell: Any) -> List[int]:
-    """
-    Convert a cell to a list of ints.
-    Accepts:
-      - a comma-separated string like "2010,2011, 2012"
-      - a list/tuple of strings or numbers
-      - NaN/None -> returns []
-    Raises ValueError if an item cannot be converted to int.
-    """
-    parts: List[str] = []
-    # If already a list/tuple/ndarray (e.g. after split), iterate items
-    if isinstance(cell, (list, tuple, np.ndarray, pd.Series)):
-        for it in cell:
-            if pd.isna(it):
-                continue
-            s = str(it).strip()
-            if s == "" or s.lower() == "nan":
-                continue
-            parts.append(s)
-    else:
-        # treat as string otherwise
-        s = str(cell).strip()
-        if s == "" or s.lower() == "nan":
-            return []
-        # remove surrounding brackets optionally: "[2001,2002]" -> "2001,2002"
-        parts = [p.strip() for p in s.split(",") if p.strip() != ""]
-
-    out: List[int] = []
-    for token in parts:
-        try:
-            out.append(int(token))
-        except ValueError:
-            try:
-                out.append(int(float(token)))
-            except Exception:
-                raise ValueError(
-                    f"Cannot convert value {token!r} to int in cell {cell!r}"
-                )
-    return out
 
 
 def reformat_year_col(
