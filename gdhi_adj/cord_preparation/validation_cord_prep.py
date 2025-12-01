@@ -52,6 +52,7 @@ def check_lsoa_consistency(df: pd.DataFrame) -> pd.DataFrame:
         f"Consistency check passed: {n_rows} rows match "
         f"{n_unique} unique lsoa_codes."
     )
+
     return df
 
 
@@ -154,3 +155,5 @@ def check_year_column_completeness(df: pd.DataFrame) -> pd.DataFrame:
         "Year column completeness check passed: "
         f"Continuous range {min_year}-{max_year} present."
     )
+
+    return df
