@@ -18,15 +18,15 @@ def check_lsoa_consistency(df: pd.DataFrame) -> pd.DataFrame:
 
     Args:
         df (pd.DataFrame): The input pandas DataFrame containing an
-        'lsoa_code' column.
+            'lsoa_code' column.
 
     Returns:
         pd.DataFrame: The original DataFrame, unchanged. This allows the
-        function to be used in method chaining (e.g., .pipe()).
+            function to be used in method chaining (e.g., .pipe()).
 
     Raises:
         ValueError: If the number of unique 'lsoa_code' values does not
-        match the total number of rows in the DataFrame.
+            match the total number of rows in the DataFrame.
         KeyError: If the 'lsoa_code' column is missing from the DataFrame.
     """
     logger.info("Starting internal consistency check on DataFrame.")
