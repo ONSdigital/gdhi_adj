@@ -37,7 +37,7 @@ class TestInterpolateImputedVal:
             "prev_con_gdhi": [10.0, 10.0],
             "next_safe_year": [2003, 2003],
             "next_con_gdhi": [40.0, 40.0],
-            "imputed_gdhi": [np.NaN, 30.0],
+            "imputed_gdhi": [np.nan, 30.0],
         })
 
         pd.testing.assert_frame_equal(
@@ -71,7 +71,7 @@ class TestExtrapolateImputedVal:
             "prev_con_gdhi": [10.0, 10.0],
             "next_safe_year": [2003, 2003],
             "next_con_gdhi": [40.0, 40.0],
-            "imputed_gdhi": [np.NaN, 30.0],
+            "imputed_gdhi": [np.nan, 30.0],
         })
 
         result_df = extrapolate_imputed_val(df, imputed_df)

@@ -25,7 +25,7 @@ def interpolate_imputed_val(df: pd.DataFrame) -> pd.DataFrame:
         / (df["next_safe_year"] - df["prev_safe_year"])
         * (df["year"] - df["prev_safe_year"])
         + df["prev_con_gdhi"],
-        np.NaN,
+        np.nan,
     )
 
     return df
@@ -62,7 +62,7 @@ def extrapolate_imputed_val(
         np.where(
             imputed_df["next_con_gdhi"].isna(),
             (imputed_df["prev_safe_year"] - 4),
-            np.NaN,
+            np.nan,
         ),
     )
     imputed_df = imputed_df.merge(
