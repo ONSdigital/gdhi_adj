@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Apportion over adjusted negative values.
 - GDHIDAP-58: aggregation from LAU to LAD level.
 - GDHIDAP-59: negative value apportionment after adjustment.
+- GDHIDAP-70: GitHub open repository security and guidance.
 
 ### Changed
 - Adjustment values now determined by interpolation/ extrapolation.
