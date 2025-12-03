@@ -8,7 +8,7 @@ from gdhi_adj.mapping.mapping_main import (
     clean_validate_mapper,
     join_mapper,
     reformat,
-    rename_s30_to_lad,
+    rename_s30_to_lau,
 )
 
 
@@ -40,7 +40,7 @@ from gdhi_adj.mapping.mapping_main import (
         )
     ]
 )
-def test_rename_s30_to_lad(df_input, expected_columns, expected_mapping):
+def test_rename_s30_to_lau(df_input, expected_columns, expected_mapping):
     """Test renaming S30 codes to LAU columns."""
     config = {
         "mapping": {
@@ -48,7 +48,7 @@ def test_rename_s30_to_lad(df_input, expected_columns, expected_mapping):
             "data_lad_name": "lad_name"
         }
     }
-    df_result, mapping_flag = rename_s30_to_lad(config, df_input.copy())
+    df_result, mapping_flag = rename_s30_to_lau(config, df_input.copy())
     assert set(expected_columns).issubset(df_result.columns)
     assert mapping_flag == expected_mapping
 

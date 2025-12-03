@@ -1,4 +1,4 @@
-"""Title for pipeline.py module"""
+"""Run each module of the pipeline based on config parameters."""
 
 import time
 
@@ -14,7 +14,9 @@ logger = GDHI_adj_LOGGER.logger
 
 
 def run_pipeline(config_path):
-    """Run the GDHI adjustment pipeline.
+    """
+    Run the GDHI adjustment pipeline.
+
     Args:
         config_path (str): Path to the configuration file.
     """

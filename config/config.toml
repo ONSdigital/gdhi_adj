@@ -77,10 +77,11 @@ output_filename = "gdhi_manual_adj_adjusted_output.csv" #Change name of file her
 
 [mapping]
 map_lau_lad = true
-aggregate_to_lad = true
+aggregate_to_lad = false
 data_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Adjustment/"
 mapper_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Mappers/"
 data_file = "test_manual_adj_adjustments_output.csv"
+# Lookup found in ONS Open Geography Portal
 lau_lad_mapper_file = "LAD_(April_2025)_to_LAU1_to_ITL3_to_ITL2_to_ITL1_(January_2025)_Lookup_in_the_UK.csv"
 output_dir =  "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Mapping/"
 output_file = "manual_adj_adjustments_output_lad.csv"
