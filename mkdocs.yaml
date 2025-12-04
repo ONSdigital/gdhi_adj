@@ -1,0 +1,46 @@
+site_name: gdhi-adj Documentation
+
+theme:
+  name: ons_mkdocs_theme
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - toc.integrate
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  language: en
+  logo: assets/images/logo.svg
+  favicon: assets/images/favicon.ico
+
+repo_name: gdhi-adj
+repo_url: https://github.com/ONSdigital/gdhi_adj/
+
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            # All options can be found at: https://mkdocstrings.github.io/python/usage/#globallocal-options
+            docstring_style: google
+            show_signature_annotations: True
+            show_source: False
+            show_root_heading: True
+            merge_init_into_class: True
+  - material/search
+  - git-revision-date-localized
+
+
+nav:
+  - gdhi-adj: index.md
+  - API Reference: reference.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: <insert repo link>
+
+# Do not remove the copy right section. But you can change the copyright information.
+copyright: |
+  &copy;  <a href="https://www.ons.gov.uk">Office for National Statistics 2025</a>
