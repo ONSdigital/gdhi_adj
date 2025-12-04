@@ -1,15 +1,15 @@
 [mapper_lad_code]
-old_name = "LAD20CD"
+old_name = "LAD25CD"
 Deduced_Data_Type = "str"
 
 [mapper_lad_name]
-old_name = "LAD20NM"
+old_name = "LAD25NM"
 Deduced_Data_Type = "str"
 
 [mapper_lau_code]
-old_name = "LAU121CD"
+old_name = "LAU125CD"
 Deduced_Data_Type = "str"
 
 [mapper_lau_name]
-old_name = "LAU121NM"
+old_name = "LAU125NM"
 Deduced_Data_Type = "str"

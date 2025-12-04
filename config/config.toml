@@ -1,4 +1,10 @@
 [user_settings]
+# Module selection: Set to true to run module, not recommended to run multiple
+# modules at once.
+preprocessing = false
+adjustment = false
+mapping = false
+cord_preparation = true
 # Common settings
 local_or_shared = "shared" # "local" or "shared"
 start_year = 2010
@@ -6,7 +12,6 @@ end_year = 2023
 output_data = true
 output_data_prefix = "test"
 # Preprocessing settings
-preprocessing = false # Set to true if you want to run preprocessing
 zscore_calculation = true # Set to true if you want to run z-score calculation
 iqr_calculation = true # Set to true if you want to run IQR calculation
 zscore_lower_threshold = -3.0 # zscore flagged if it is below this threshold
@@ -16,20 +21,22 @@ iqr_upper_quantile = 0.75 # quantile for IQR upper bound
 iqr_multiplier = 1.0 # multiplier for calculating IQR bounds
 transaction_name = "Imputed Social Contributions Received"
 # Adjustment settings
-adjustment = true # Set to true if you want to run manual adjustment
 sas_code_filter = "G866BTR"
 cord_code_filter = "D75"
 credit_debit_filter = "D"
+# Mapping settings
+# CORD preparation settings
 
 [pipeline_settings]
 schema_path = "config/schemas/"
 input_gdhi_schema_name = "input_gdhi_schema.toml"
 input_ra_lad_schema_name = "input_ra_lad_schema.toml"
+output_preprocess_schema_path = "output_preprocess_schema.toml"
 input_adj_schema_name = "input_adj_schema.toml"
 input_constrained_schema_name = "input_constrained_schema.toml"
 input_unconstrained_schema_name = "input_unconstrained_schema.toml"
-output_preprocess_schema_path = "output_preprocess_schema.toml"
 output_adjustment_schema_path = "output_adjustment_schema.toml"
+output_cord_prep_schema_path = "output_cord_prep_schema.toml"
 
 [preprocessing_shared_settings]
 #To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
@@ -53,6 +60,14 @@ output_dir = "/Office for National Statistics/Subnational Statistics - GDHI/2010
 interim_filename =  "manual_adj_adjustments_interim_QA.csv" #Change name of file here
 output_filename = "manual_adj_adjustments_output.csv" #Change name of file here
 
+[cord_prep_shared_settings]
+#To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
+#sharepoint site, go into the subfolder 'GDHI' and open '2025_manual_adjustments'
+#and click the 'sync' button to sync to your local OneDrive.
+input_filemame = "test_manual_adj_adjustments_output_lad_not_aggregated.csv"
+output_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/CORD_formatted"
+output_filename = "CP_data.csv"
+
 [preprocessing_local_settings]
 #Match below local settings to locations of files stored locally
 input_dir = "D:/gdhi/Testing_Data/"
@@ -75,14 +90,14 @@ output_filename = "gdhi_manual_adj_adjusted_output.csv" #Change name of file her
 
 [mapping]
 map_lau_lad = true
-aggregate_to_lad = false
-data_dir = "D:/data/gdhi_adj/"
-mapper_dir = "D:/data/gdhi_adj/"
+aggregate_to_lad = true
+data_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Adjustment/"
+mapper_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Mappers/"
 data_file = "test_manual_adj_adjustments_output.csv"
-output_dir =  "D:/data/gdhi_adj/"
-output_file = "test_manual_adj_adjustments_output_lad_not_aggregates.csv"
-lau_lad_file = "D:/data/gdhi_adj/itl_2022.csv"
-lau_lad_schema_name = "lau_lad_schema.toml"
+lau_lad_mapper_file = "LAD_(April_2025)_to_LAU1_to_ITL3_to_ITL2_to_ITL1_(January_2025)_Lookup_in_the_UK.csv"
+output_dir =  "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Mapping/"
+output_file = "manual_adj_adjustments_output_lad.csv"
+lau_lad_schema_name = "input_lau_lad_schema.toml"
 data_lad_code = "lad_code"
 data_lad_name = "lad_name"
 
