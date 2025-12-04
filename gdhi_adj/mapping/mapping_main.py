@@ -5,37 +5,12 @@ import re
 
 import pandas as pd
 
-from gdhi_adj.utils.helpers import read_with_schema
+from gdhi_adj.utils.helpers import read_with_schema, write_with_schema
 from gdhi_adj.utils.logger import GDHI_adj_logger
 
 # Initialize logger
-GDHI_adj_LOGGER = GDHI_adj_logger("__name__")
+GDHI_adj_LOGGER = GDHI_adj_logger(__name__)
 logger = GDHI_adj_LOGGER.logger
-
-
-def load_data(config, df=pd.DataFrame()):
-    """
-    Load in adjusted data using filepaths from the config
-
-    Args:
-        config (dict): Configuration dictionary containing user settings and
-            pipeline settings.
-
-    Returns:
-        df (pd.DataFrame): DataFrame containing adjusted data.
-    """
-    if df.empty:
-        logger.info("Input dataframe is empty.")
-        data_file_path = os.path.join(
-            "C:/Users",
-            os.getlogin(),
-            config["mapping"]["data_dir"],
-            config["mapping"]["data_file"],
-        )
-        logger.info(f"Reading data from {data_file_path}")
-        df = pd.read_csv(data_file_path)
-
-    return df
 
 
 def rename_s30_to_lau(config, df):
@@ -55,8 +30,8 @@ def rename_s30_to_lau(config, df):
     """
     # If S30 column exists, rename LAD columns to to LAU, because for England
     # it's the same, but for Scotland they are actually LAU codes
-    lad_code_col = config["mapping"]["data_lad_code"]
-    lad_name_col = config["mapping"]["data_lad_name"]
+    lad_code_col = config["mapping_settings"]["data_lad_code"]
+    lad_name_col = config["mapping_settings"]["data_lad_name"]
 
     # By default, assume no mapping is needed
     need_mapping = False
@@ -83,32 +58,6 @@ def rename_s30_to_lau(config, df):
         else:
             logger.info("No S30 codes detected in LAD code column.")
     return df, need_mapping
-
-
-def load_mapper(config):
-    """
-    Load in mapper used for converting S30 to S12.
-
-    Args:
-        config (dict): Configuration dictionary containing user settings and
-            pipeline settings.
-
-    Returns:
-        pd.DataFrame: DataFrame containing data used to join LADs to LAUs.
-    """
-    mapper_file_path = os.path.join(
-        "C:/Users/",
-        os.getlogin(),
-        config["mapping"]["mapper_dir"],
-        config["mapping"]["lau_lad_mapper_file"],
-    )
-    mapper_schema_path = os.path.join(
-        config["pipeline_settings"]["schema_path"],
-        config["mapping"]["lau_lad_schema_name"],
-    )
-    logger.info(f"Loading LAU to LAD mapping from {mapper_file_path}")
-    mapper_df = read_with_schema(mapper_file_path, mapper_schema_path)
-    return mapper_df
 
 
 def clean_validate_mapper(mapper_df):
@@ -211,35 +160,6 @@ def reformat(df, original_columns):
     return df[original_columns]
 
 
-def save_output(config, df):
-    """
-    Save DataFrame with joined LAD codes.
-
-    Args:
-        config (dict): Configuration dictionary containing user settings and
-            pipeline settings.
-        df (pd.DataFrame): DataFrame containing joined LAD codes.
-
-    Returns:
-        Saved csv output
-    """
-    output_dir = config["mapping"]["output_dir"]
-    output_file = (
-        config["user_settings"]["output_data_prefix"]
-        + "_"
-        + config["mapping"]["output_file"]
-    )
-    output_path = os.path.join(
-        "C:/Users/", os.getlogin(), output_dir, output_file
-    )
-    if config["mapping"]["aggregate_to_lad"]:
-        output_path = output_path.replace(".csv", "_aggregated.csv")
-    else:
-        output_path = output_path.replace(".csv", "_not_aggregated.csv")
-    logger.info(f"Saving output to {output_path}")
-    df.to_csv(output_path, index=None)
-
-
 def run_mapping(config: dict, df=pd.DataFrame()):
     """
     Run the mapping steps for the GDHI adjustment pipeline.
@@ -257,32 +177,70 @@ def run_mapping(config: dict, df=pd.DataFrame()):
     """
     logger.info("Started mapping LAUs to LADs")
 
-    # Load data file, if it is not provided as a DataFrame
-    df = load_data(config)
+    df = read_with_schema(
+        input_file_path=os.path.join(
+            "C:/Users",
+            os.getlogin(),
+            config["mapping_settings"]["input_adj_file_dir"],
+            config["mapping_settings"]["input_adj_file_name"],
+        ),
+        input_schema_path=os.path.join(
+            config["pipeline_settings"]["schema_path"],
+            config["pipeline_settings"]["output_adjustment_schema_path"],
+        ),
+    )
+
     original_columns = df.columns.tolist()
     df, need_mapping = rename_s30_to_lau(config, df)
 
     print(f"Mapping needed: {need_mapping}")
     if need_mapping:
-        mapper_df = load_mapper(config)
+        mapper_df = read_with_schema(
+            input_file_path=os.path.join(
+                "C:/Users/",
+                os.getlogin(),
+                config["mapping_settings"]["input_lau_lad_mapper_dir"],
+                config["mapping_settings"]["input_lau_lad_mapper_file"],
+            ),
+            input_schema_path=os.path.join(
+                config["pipeline_settings"]["schema_path"],
+                config["pipeline_settings"][
+                    "input_mapping_lau_lad_schema_name"
+                ],
+            ),
+        )
+
         mapper_df, valid_mapper = clean_validate_mapper(mapper_df)
 
         result_df = join_mapper(df, mapper_df)
-        if config["mapping"]["aggregate_to_lad"]:
+
+        output_name = (
+            config["user_settings"]["output_data_prefix"]
+            + "_"
+            + config["mapping_settings"]["output_filename"]
+        )
+        if config["mapping_settings"]["aggregate_to_lad"]:
             logger.info("Starting aggregating data to LAD level as requested.")
             result_df = aggregate_lad(result_df)
+            output_name = output_name.replace(".csv", "_aggregated.csv")
         else:
             logger.info("Aggregation to LAD not requested.")
+            output_name = output_name.replace(".csv", "_not_aggregated.csv")
         result_df = reformat(result_df, original_columns)
-        save_output(config, result_df)
-        logger.info("Completed mapping LAUs to LADs")
-        return result_df
-    else:
-        logger.info(
-            "Mapping LAUs to LADs not needed. Returning original dataframe."
+
+        write_with_schema(
+            result_df,
+            output_schema_path=os.path.join(
+                config["pipeline_settings"]["schema_path"],
+                config["pipeline_settings"]["output_mapping_schema_path"],
+            ),
+            output_dir=os.path.join(
+                "C:/Users/",
+                os.getlogin(),
+                config["mapping_settings"]["output_dir"],
+            ),
+            new_filename=output_name,
         )
-        return df
-
-
-if __name__ == "__main__":
-    run_mapping()
+        logger.info("Completed mapping LAUs to LADs")
+    else:
+        logger.info("Mapping LAUs to LADs not needed. No S30 codes detected.")

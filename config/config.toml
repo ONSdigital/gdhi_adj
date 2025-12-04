@@ -30,8 +30,10 @@ input_ra_lad_schema_name = "input_ra_lad_schema.toml"
 input_adj_schema_name = "input_adj_schema.toml"
 input_constrained_schema_name = "input_constrained_schema.toml"
 input_unconstrained_schema_name = "input_unconstrained_schema.toml"
+input_mapping_lau_lad_schema_name = "input_lau_lad_schema.toml"
 output_preprocess_schema_path = "output_preprocess_schema.toml"
 output_adjustment_schema_path = "output_adjustment_schema.toml"
+output_mapping_schema_path = "output_mapping_schema.toml"
 
 [preprocessing_shared_settings]
 #To run from SharePoint, you need to to go the Subnational Statistics - Regional Accounts
@@ -75,28 +77,15 @@ output_dir = "D:/gdhi/Testing_Data/Output/"
 interim_filename =  "manual_adj_adjustments_interim_QA.csv" #Change name of file here
 output_filename = "gdhi_manual_adj_adjusted_output.csv" #Change name of file here
 
-[mapping]
-map_lau_lad = true
-aggregate_to_lad = false
-data_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Adjustment/"
-mapper_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Mappers/"
-data_file = "test_manual_adj_adjustments_output.csv"
+[mapping_settings]
+input_adj_file_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Adjustment/"
+input_adj_file_name = "test_manual_adj_adjustments_output.csv"
+input_lau_lad_mapper_dir = "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Mappers/"
 # Lookup found in ONS Open Geography Portal
-lau_lad_mapper_file = "LAD_(April_2025)_to_LAU1_to_ITL3_to_ITL2_to_ITL1_(January_2025)_Lookup_in_the_UK.csv"
+input_lau_lad_mapper_file = "LAD_(April_2025)_to_LAU1_to_ITL3_to_ITL2_to_ITL1_(January_2025)_Lookup_in_the_UK.csv"
 output_dir =  "Office for National Statistics/Subnational Statistics - GDHI/2010-2023/System_Development/2025_Manual_Adjustments/Testing_Data/Output/Mapping/"
-output_file = "manual_adj_adjustments_output_lad.csv"
-lau_lad_schema_name = "input_lau_lad_schema.toml"
+output_filename = "manual_adj_adjustments_output_lad.csv"
+
 data_lad_code = "lad_code"
 data_lad_name = "lad_name"
-
-mapper_lau_code = "LAU121CD"
-mapper_lau_name = "LAU121NM"
-
-mapper_lad_code = "LAD20CD"
-mapper_lad_name = "LAD20NM"
-
-use_lad_names = true
-save_intermediate = true
-save_final = true
-validate_mapper = false
-validate_data = false
+aggregate_to_lad = false
